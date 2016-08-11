@@ -1,0 +1,5 @@
+Charger working -> ok
+Better DCF77    -> ok
+Better Keys     -> ok
+Power estimator -> ok
+Display flicker -> still no idea

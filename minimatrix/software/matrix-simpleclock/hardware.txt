@@ -1,0 +1,5 @@
+RTC clock: Used for display + rtc
+timer C0: used for sound
+timer C1: used for performance counter
+timer D0: used for dcf77 sampling
+timer D1: 2MHz rc clock synchronization
