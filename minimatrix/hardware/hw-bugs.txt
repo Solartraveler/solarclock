@@ -1,0 +1,53 @@
+Version 1.0 of the board contains the following bugs:
+The changes are documented in version 1.0, however no such new PCB has been produced.
+
+1. TWI
+   Problem: TWI misses the ~2k pull up resistors on both signals.
+   Workaround: Use TWI with internal 20k pull-up resistors. This will only work on very low clock frequencies.
+2. Light sensor
+   To measure the full dynamic of the surrounding, different values for R2 are needed.
+   Workaround: Use R2 = 1MOhm, and connect PE4 with 100kOhm and PE7 with 4.7kOhm to the photo transistor.
+   Note: Due connection of R2 with R5, measurements with PE4 or PE7 as high, must remove the effects of T1 by measuring T1 and do some math.
+3. JTAG
+   The connector is too close to J4.
+   Workaround: Use PDI for programming or do not equip J4.
+   Note: JTAG has never been tested.
+4. Jumpers J1, J2, J3, J4
+   4.1 The jumpers are lager than expected. Text in front can't be read. Workaround: None
+   4.2 D4 has too less space. Workaround: Solder D4 from the bottom
+5. LED Voltage regulator
+   5.1 Disconnecting the power supply by opening SV9, results in VCC as VCCLED. TOO HIGH VOLTAGE! Workaround: Never open SV9 unless all matrix LEDs are off. Only open tesing purpose (eg measuring current consumptions).
+   5.2 C18 makes regulation bad. Workaround: Don't equip C18.
+   5.3 Regulation swings. Workaround: Connect 100nF from VCCLED to the positive input of IC2.
+   5.4 Regulation swings. C20 is too small. Use at least 150µF. Connect an additional electrolyte in parallel.
+   5.5 The planned 30Ohm as resistor for the LEDs cant be bought easily. Workaround: Use 27Ohm.
+6. Touch
+   Do not equip C23 ... C30.
+   Sensitivity too low. Make PCB sensing field larger. Or better use IR distance sensors (other .brd file)
+7. Level converter for PDI bad.
+   Workaround: Do not equip SV8, D1, D2. Lower R3, R4 to 200Ohm. Use 3.3V programmer.
+8. Too high power consumption
+   Do not equip D3.
+9. Screw holes
+   The screw holes are too close to some pads.
+   Workaround: Do not use or use isolated screws.
+10. Crystals
+   10.1 There are vias below Q1 ans Q2 which may result in a short circuit if the crystal touches these.
+        Workaround: Solder pins of Q1 with some distance to the PCB. Add some isolating tape below Q2.
+   10.2 C10 and C11 are not needed. Do not equip.
+11. SV4
+   The holes only allow soldering female header and are too small for male header.
+   Workaround: Use female header.
+12. RFM12:
+  12.1 There are vias below the RFM12 module wich might result in short circuit
+   Workaround: Put a piece of paper between pcb and RFM12 while soldering, remove later -> results in some space between PCBs
+  12.2 RFM12 needs external reset for proper operation
+   Woraround: Connect pin PE5 from PIR detector to reset (do not use PIR detector)
+13. PIR Detector does not work
+   Workaround: Do not solder PIR detector and R39
+14. R42 and R43 are too low, resulting in a maximum voltage measurement range of 3.2V -> not enough for charger
+   Workaround: Solder 360kOhm for both resistors
+15. Charging current cant be measured very well
+  Use 2.2Ohm for R46.
+16. The ir-sensor board uses SG2-BC photointerrupters as contact-free keys. However direct sunlight results in accidential key presses and intentional key presses become impossible.
+   Workaround: Only use clock in the shadow from the sun or with artifical light.

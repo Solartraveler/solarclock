@@ -1,0 +1,85 @@
+BE CAREFUL, this list is for parts of PCB vesion 1.0. Some parts not have been replaced on version 1.1 (old parts are on this list, new ones not).
+
+Bauteilhöhe Poti: 7,7mm
+LED + Sockel Höhe: Sockel=4,1mm  LED= 6,4mm -> 10,5
+
+PCB Dimension:
+75x60x(10,5+1.5+3)=75x60x15
+Akku Dimension: 58x32x(13,5+2mm) = 15,5mm
+-> Höhe = 31mm
+
+Optionen: Jeweils entweder A, B oder C bestellen
+
+Selber gewählt: 1A, 2B, 3B, 4A, 5B
+
+Bauteile                  Reichelt Bestellnummer   €
+1x ATxmega 100QFP 64KB    ATXMEGA 64A1-AU   4,95 Option 4A
+1x ATxmega 100QFP 128KB   ATXMEGA 128A1-AU  6,60 Option 4B
+1x IR 38KHz TSOP31238     TSOP 31238        0,77 Option 3A
+1x IR 36kHz TSOP31236     TSOP 31236        0,77 Option 3B
+1x 24FC64P  8KB EEROM     24FC64-I/P        0,54 Option 5A
+1x 24AA256P 32KB EEPROM   24AA256-I/P       1,05 Option 5B
+1x 24AA1025 128KB EEPROM  24AA1025-I/P      3,50 Option 5C
+1x LHI878 PIR Sensor      LHI 878 RF        2,70
+1x LPT80A Fototransistor  LPT 80            0,70
+1x Temp Sensor 2k         KTY 81-221        0,57
+1x Poti 100k CA6H         PT 6-S 100K       0,24
+1x MCP6051                MCP 6051T-E/OT    0,69
+1x LM385Z-1.2             LM 385-Z1,2       0,39  Option 1A
+1x LT1004C-1.2            LT 1004 CZ-1,2    1,95  Option 1B (spart 15µA)
+15x 100nF 0805            X7R-G0805 100N    0,05
+8x IRLML6402PbF           IRLML 6402        0,15
+                                          ZwSumme=14,01
+2x BSS138                 BSS 138 SMD       0,04
+3x 100µF 1206             X5R-G1206 100/6   0,34 Option 6A (ausverkauft)
+3x 47µF 1206              X5R-G1206 47/6    0,20 Optoin 6B
+12x 22pF 0805             NPO-G0805 22P     0,05
+1x 1 15mm                 2W METALL 1,0     0,11
+20x 27 0805               SMD-0805 27,0     0,082
+2x 220 0805               SMD-0805 220      0,103
+2x 4.7k 0805              SMD-0805 4,70K    0,103
+1x 47k 0805               SMD-0805 47,0K    0,103
+1x 68k 0805               SMD-0805 68,0K    0,103 Option 1A
+1x 33k 0805               SMD-0805 33,0K    0,103 Option 1B
+2x 100k 0805              SMD-0805 100K     0,103
+                                          ZwSumme=4,411
+1x 110k 0805              SPR-0805 110K     0,24
+1x 200k 0805              SPR-0805 220K     0,24
+3x 220k 0805              SMD-0805 220K     0,103
+1x 1000k 0805             SMD-0805 1,00M    0,103
+24x 10000k 0805           SMD-0805 10,0M    0,082
+1x Spule 10µH             L-MICC 10µ        0,15
+1x 1N5817-B               1N 5817           0,06
+1x Quarz 32kHz            0,032768          0,12
+1x Quarz 4MHz             4,0000-HC49U-S    0,19
+1x Sicherung 250mA        SMD-HASF 0,25A    1,10
+1x Stiftleiste 2x5        MPE 087-2-010     0,25
+1x Stiftleiste 1x3        MPE 087-1-003     0,08 Option 2A
+                                          ZwSumme=4,81
+1x Stiftleiste 2x3        MPE 087-2-008     0,20
+2x Stiftleiste 1x2        MPE 087-1-002     0,05 Option 2A
+2x Stiftleiste 1x6        MPE 087-1-006     0,15 Option 2A
+1x Stiftleiste 1x40       SL 1X40G 2,54     0,18 Option 2B
+
+1x Buchsenleiste 1x10     BL 1X10G8 2,54    0,18
+1x Buchsenleiste 1x6      MPE 094-1-006     0,25
+4x Schraubanschluss 1x2   AKL 059-02        0,24
+4x Sockel DIL 14          GS 14             0,04
+1x Sockel DIL 8           GS 8              0,04
+1x Fresnel Linse          FRESNEL-0650      1,80
+2x Akkus NIMH AA          ENELOOP 4XAA      10,50 /[4Stück]
+1x Akkuhalter             HALTER 2XAAZ      0,35
+1x Lautsprecher           BL 28             1,50
+                                          ZwSumme=11,09
+1x Gehäuse
+1x Solarzelle 3V          -------  ca 3,3V Leerlauf , 360mA max.      ~20,00
+1x PCB Herstellung        -------  mikrocontroller.net Platinensammler 31,72
+1x RFM12                  -------  Pollin    810 049                    4,95
+4x LED Matrix Module      -------  RS        TA07-11CGKWA               2,77
+
+Total: 93,76
+
+IR Sensor board:
+1x IRML6402                                            Q1
+4x 39 0805                                  0,103      R1, R2, R3, R4
+4x 47k 0805                                 0,103      R5, R6, R7, R8
