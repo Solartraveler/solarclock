@@ -309,7 +309,7 @@ static void update_display_brightness(void) {
 	}
 	uint8_t newbrightness = 0;
 	if ((g_settings.brightnessAuto) || (g_dispUpdate == updateDispbrightText)) {
-		if ((g_settings.brightnessNoOff) /* || (g_state.displayNoOffCd)*/) {
+		if ((g_settings.brightnessNoOff)  || (g_state.displayNoOffCd)) {
 			newbrightness = 1;
 		}
 		if (g_state.ldr < 0x8CE4) { //mode 2 + 3300
@@ -487,10 +487,6 @@ static void run8xS(void) {
 		g_state.dcf77ResyncCd = 60*60*4; //4 hours to next sync
 		menu_keypress(100); //auto switch to clock, when in dcf77 view
 	}
-	//count down for no display off due to key press
-	if (g_state.displayNoOffCd) {
-		g_state.displayNoOffCd--;
-	}
 	//read in IR key sensors
 	uint8_t irKey = 0;
 	if (dcf77_is_idle()) { //reduce noise (do not measure while bit comes in)
@@ -577,6 +573,10 @@ static void run1xS(void) {
 		g_state.freqdelta = res;
 		dcf77_enable(g_state.freqdelta);
 	}
+	//count down for no display off due to key press
+	if (g_state.displayNoOffCd) {
+		g_state.displayNoOffCd--;
+	}
 	//calc time to dcf77 resync
 	if (g_state.dcf77ResyncCd) {
 		g_state.dcf77ResyncCd--;
@@ -644,7 +644,7 @@ int main(void) {
 	power_setup();
 	disp_rtc_setup();
 	g_settings.debugRs232 = 1; //gets overwritten by config_load() anyway
-	rs232_sendstring_P(PSTR("Simple-Clock V1.0\r\n"));
+	rs232_sendstring_P(PSTR("Simple-Clock V1.01\r\n"));
 	config_load();
 	g_state.batteryCharged = g_settings.batteryCapacity;
 	g_state.batteryCharged *= (60*60);//mAh -> mAs
