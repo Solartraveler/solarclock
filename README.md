@@ -12,11 +12,11 @@ hardware. Every menu item can be changed as on the real clock, however there
 is no functionality behind the GUI on the PC. Control the simulation with the four
 cursor keys.
 
-![alt text](images/linux-gui.png "Linux GUI simulation")
+![alt text](minimatrix/images/linux-gui.png "Linux GUI simulation")
 
 The prototype clock:
 
-![alt text](images/minimatrix-wall.jpg "Real clock")
+![alt text](minimatrix/images/minimatrix-wall.jpg "Real clock")
 
 If connected to an external RS232 level converter (19200 baud, no parity,
 no extra stop bits, no flowcontrol), and enabled RS232 in the debug
