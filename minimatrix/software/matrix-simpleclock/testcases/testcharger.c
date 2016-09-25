@@ -66,6 +66,10 @@ void tc_runseconds(int seconds, int consumption) {
 	}
 }
 
+void loggerlog_batreport(void) {
+
+}
+
 //-------------- testfunctions ----------------------
 
 

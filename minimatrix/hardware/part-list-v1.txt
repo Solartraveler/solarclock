@@ -19,7 +19,7 @@ Bauteile                  Reichelt Bestellnummer   €
 1x IR 36kHz TSOP31236     TSOP 31236        0,77 Option 3B
 1x 24FC64P  8KB EEROM     24FC64-I/P        0,54 Option 5A
 1x 24AA256P 32KB EEPROM   24AA256-I/P       1,05 Option 5B
-1x 24AA1025 128KB EEPROM  24AA1025-I/P      3,50 Option 5C
+1x 24AA1025 128KB EEPROM  24AA1025-I/P      3,50 Option 5C (software only supports up to 64KB right now)
 1x LHI878 PIR Sensor      LHI 878 RF        2,70
 1x LPT80A Fototransistor  LPT 80            0,70
 1x Temp Sensor 2k         KTY 81-221        0,57

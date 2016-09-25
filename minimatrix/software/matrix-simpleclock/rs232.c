@@ -79,7 +79,7 @@ void rs232_rx_init(void) {
 }
 
 void rs232_rx_disable(void) {
-	rs232_sendstring_P("RX disabled\r\n");
+	rs232_sendstring_P(PSTR("RX disabled\r\n"));
 	g_rs232userx = 0;
 	USART.CTRLB &= ~USART_RXEN_bm;
 	RS232_PORT.RS232_RX_PIN = PORT_ISC0_bm | PORT_ISC1_bm | PORT_ISC2_bm; //disables input sense

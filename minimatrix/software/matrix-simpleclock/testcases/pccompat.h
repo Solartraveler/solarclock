@@ -8,4 +8,6 @@
 
 void menu_keypress(uint16_t key);
 
+void loggerlog_batreport(void);
+
 #endif
