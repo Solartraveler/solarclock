@@ -1,0 +1,541 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MenuConfig utf8="-1" Xsize="28" Ysize="5" compact="-1" graphviz="2" languages="1" multilang="0">
+  <window number="30" comment="D - Show DCF77" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="DcfValue" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 29" shortcutkey="1"/>
+    <shortcut action="Dcf77Off" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="Dcf77On" number="4" screen="" shortcutkey="3"/>
+    <shortcut action="ShowClockOn" number="5" screen="window 15" shortcutkey="100"/>
+  </window>
+  <window number="5" comment="MM - Clock" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Clock" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 35" shortcutkey="2"/>
+    <shortcut action="" number="3" screen="window 86" shortcutkey="3"/>
+    <shortcut action="ShowClockOn" number="4" screen="window 15" shortcutkey="4"/>
+  </window>
+  <window number="35" comment="MM - Alarm simple" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Alarm1" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 78" shortcutkey="2"/>
+    <shortcut action="" number="3" screen="window 5" shortcutkey="3"/>
+    <shortcut action="ShowAlarmOn" number="4" screen="window 37" shortcutkey="4"/>
+  </window>
+  <window number="78" comment="MM - Alarm advanced" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Alarm2" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 36" shortcutkey="2"/>
+    <shortcut action="" number="3" screen="window 35" shortcutkey="3"/>
+    <shortcut action="ShowAlarmadvancedOn" number="4" screen="window 79" shortcutkey="4"/>
+  </window>
+  <window number="36" comment="MM - Timer" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Timer" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 3" shortcutkey="2"/>
+    <shortcut action="" number="3" screen="window 78" shortcutkey="3"/>
+    <shortcut action="ShowTimerOn" number="4" screen="window 38" shortcutkey="4"/>
+  </window>
+  <window number="3" comment="MM - Temperature" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Temp" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 33" shortcutkey="2"/>
+    <shortcut action="" number="3" screen="window 36" shortcutkey="3"/>
+    <shortcut action="ShowTemperatureOn" number="4" screen="window 13" shortcutkey="4"/>
+  </window>
+  <window number="33" comment="MM - Config" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Config" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="2"/>
+    <shortcut action="" number="3" screen="window 3" shortcutkey="3"/>
+    <shortcut action="" number="4" screen="window 7" shortcutkey="4"/>
+  </window>
+  <window number="34" comment="MM - Debug" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Debug" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 62" shortcutkey="2"/>
+    <shortcut action="" number="3" screen="window 33" shortcutkey="3"/>
+    <shortcut action="" number="4" screen="window 1" shortcutkey="4"/>
+  </window>
+  <window number="62" comment="MM - Keylock" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Keylock" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 86" shortcutkey="2"/>
+    <shortcut action="" number="3" screen="window 34" shortcutkey="3"/>
+    <shortcut action="ShowKeylockOn" number="4" screen="window 63" shortcutkey="4"/>
+  </window>
+  <window number="86" comment="MM - Powersave" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="15" text="PwrSav" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 5" shortcutkey="2"/>
+    <shortcut action="" number="3" screen="window 62" shortcutkey="3"/>
+    <shortcut action="PowersaveOn" number="4" screen="window 63" shortcutkey="4"/>
+  </window>
+  <window number="15" comment="S - Time" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Clock" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 5" shortcutkey="1"/>
+    <shortcut action="ShowDateOn" number="3" screen="window 22" shortcutkey="2"/>
+    <shortcut action="ShowAlarmOn" number="4" screen="window 37" shortcutkey="3"/>
+    <shortcut action="ShowTimerOn" number="5" screen="window 38" shortcutkey="4"/>
+  </window>
+  <window number="22" comment="S - Date" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Date" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 5" shortcutkey="1"/>
+    <shortcut action="ShowClockOn" number="3" screen="window 15" shortcutkey="2"/>
+    <shortcut action="ShowAlarmOn" number="4" screen="window 37" shortcutkey="3"/>
+    <shortcut action="ShowTimerOn" number="5" screen="window 38" shortcutkey="4"/>
+  </window>
+  <window number="37" comment="S - Alarm simple" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Alarm" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 35" shortcutkey="1"/>
+    <shortcut action="AlarmDec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="AlarmInc" number="4" screen="" shortcutkey="3"/>
+    <shortcut action="AlarmNext" number="5" screen="" shortcutkey="4"/>
+  </window>
+  <window number="79" comment="S - Alarm advanced" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Alarmadvanced" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 78" shortcutkey="1"/>
+    <shortcut action="AlarmAdvancedDec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="AlarmAdvancedInc" number="4" screen="" shortcutkey="3"/>
+    <shortcut action="AlarmAdvancedNext" number="5" screen="" shortcutkey="4"/>
+  </window>
+  <window number="38" comment="S - Timer" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Timer" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 36" shortcutkey="1"/>
+    <shortcut action="TimerDec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="TimerInc" number="4" screen="" shortcutkey="3"/>
+    <shortcut action="TimerStart" number="5" screen="" shortcutkey="4"/>
+  </window>
+  <window number="13" comment="S - Temperature" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Temperature" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 3" shortcutkey="1"/>
+  </window>
+  <window number="7" comment="MC - Display brightness" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Display" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 39" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 85" shortcutkey="3"/>
+    <shortcut action="ShowDispbrightOn" number="5" screen="window 17" shortcutkey="4"/>
+  </window>
+  <window number="39" comment="MC - Always on" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Alw on" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 40" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 7" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 45" shortcutkey="4"/>
+  </window>
+  <window number="40" comment="MC - Show seconds" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Second" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 41" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 39" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 46" shortcutkey="4"/>
+  </window>
+  <window number="41" comment="MC - Sound auto off" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Snd Off" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 42" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 40" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 47" shortcutkey="4"/>
+  </window>
+  <window number="42" comment="MC - Sound volume" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Snd Vol" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 43" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 41" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 48" shortcutkey="4"/>
+  </window>
+  <window number="43" comment="MC - Sound frequency" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Snd Hz" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 44" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 42" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 49" shortcutkey="4"/>
+  </window>
+  <window number="44" comment="MC - Refreshrate" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Refr Hz" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 80" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 43" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 50" shortcutkey="4"/>
+  </window>
+  <window number="80" comment="MC - RFM12 enabled" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="RFM12 " number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 81" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 44" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 87" shortcutkey="4"/>
+  </window>
+  <window number="81" comment="MC - RC-5 enabled" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="RC-5" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 83" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 80" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 88" shortcutkey="4"/>
+  </window>
+  <window number="83" comment="MC - Power save start time" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="PSv On" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 84" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 81" shortcutkey="3"/>
+    <shortcut action="ShowPowersavestartOn" number="5" screen="window 89" shortcutkey="4"/>
+  </window>
+  <window number="84" comment="MC - Power save stop time" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="PSv Off" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 85" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 83" shortcutkey="3"/>
+    <shortcut action="ShowPowersavestopOn" number="5" screen="window 90" shortcutkey="4"/>
+  </window>
+  <window number="85" comment="MC - Power save weekdays" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="PSv Wd" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 7" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 84" shortcutkey="3"/>
+    <shortcut action="ShowPowersaveweekOn" number="5" screen="window 91" shortcutkey="4"/>
+  </window>
+  <window number="17" comment="C - Set display brightness" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Brightness" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 7" shortcutkey="1"/>
+    <shortcut action="BrightDec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="BrightInc" number="4" screen="" shortcutkey="3"/>
+    <shortcut action="BrightAutoToggle" number="5" screen="" shortcutkey="4"/>
+  </window>
+  <window number="45" comment="C - Always on" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="BrigthAlways" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 39" shortcutkey="1"/>
+    <shortcut action="BrightAlwaysOff" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="BrightAlwaysOn" number="4" screen="" shortcutkey="3"/>
+  </window>
+  <window number="46" comment="C - Show seconds" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="ShowSecs" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 40" shortcutkey="1"/>
+    <shortcut action="ClockShowSecOff" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="ClockShowSecOn" number="4" screen="" shortcutkey="3"/>
+  </window>
+  <window number="47" comment="C - Sound auto off" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="SoundAutoOffTime" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 41" shortcutkey="1"/>
+    <shortcut action="SoundAutoOffDec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="SoundAutoOffInc" number="4" screen="" shortcutkey="3"/>
+  </window>
+  <window number="48" comment="C - Sound volume" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="SoundVolume" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 42" shortcutkey="1"/>
+    <shortcut action="SoundVolumeDec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="SoundVolumeInc" number="4" screen="" shortcutkey="3"/>
+  </window>
+  <window number="49" comment="C - Sound frequency" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="SoundFreq" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 43" shortcutkey="1"/>
+    <shortcut action="SoundFreqDec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="SoundFreqInc" number="4" screen="" shortcutkey="3"/>
+  </window>
+  <window number="50" comment="C - Refreshrate" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Refresh" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 44" shortcutkey="1"/>
+    <shortcut action="RefreshDec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="RefreshInc" number="4" screen="" shortcutkey="3"/>
+  </window>
+  <window number="87" comment="C - RFM12 enabled" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Rfm12enabled" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 80" shortcutkey="1"/>
+    <shortcut action="Rfm12Dec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="Rfm12Inc" number="4" screen="" shortcutkey="3"/>
+  </window>
+  <window number="88" comment="C - RC-5 enabled" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Rc5enabled" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 81" shortcutkey="1"/>
+    <shortcut action="Rc5Dec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="Rc5Inc" number="4" screen="" shortcutkey="3"/>
+    <shortcut number="5" shortcutkey="4" action="Rc5RecordUp" screen="window 96"/>
+  </window>
+  <window number="89" comment="C - Power save start time" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Powersavestart" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 83" shortcutkey="1"/>
+    <shortcut action="PowersavestartDec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="PowersavestartInc" number="4" screen="" shortcutkey="3"/>
+    <shortcut number="5" shortcutkey="4" action="PowersavestartNext" screen=""/>
+  </window>
+  <window number="90" comment="C - Power save stop time" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Powersavestop" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 84" shortcutkey="1"/>
+    <shortcut action="PowersavestopDec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="PowersavestopInc" number="4" screen="" shortcutkey="3"/>
+    <shortcut number="5" shortcutkey="4" action="PowersavestopNext" screen=""/>
+  </window>
+  <window number="91" comment="C - Power save weekdays" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Powersaveweekdays" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 85" shortcutkey="1"/>
+    <shortcut action="PowersaveweekDec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="PowersaveweekInc" number="4" screen="" shortcutkey="3"/>
+    <shortcut number="5" shortcutkey="4" action="PowersaveweekNext" screen=""/>
+  </window>
+  <window number="1" comment="MD - Voltage&#xA;Input voltage. Equal to battery voltage if no charging occurrs." focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Volt in" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 51" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 101" shortcutkey="3"/>
+    <shortcut action="ShowVoltageOn" number="5" screen="window 11" shortcutkey="4"/>
+  </window>
+  <window number="51" comment="MD - Current" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Charge" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 61" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 1" shortcutkey="3"/>
+    <shortcut action="ShowCurrentOn" number="5" screen="window 21" shortcutkey="4"/>
+  </window>
+  <window number="61" comment="MD - Charged" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="15" text="Charged" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 59" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 51" shortcutkey="3"/>
+    <shortcut action="ShowChargedOn" number="5" screen="window 60" shortcutkey="4"/>
+  </window>
+  <window number="59" comment="MD - Charge mode" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="C Mode" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 4" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 61" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 58" shortcutkey="4"/>
+  </window>
+  <window number="4" comment="MD - LDR" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Bright" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 29" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 59" shortcutkey="3"/>
+    <shortcut action="ShowLightOn" number="5" screen="window 14" shortcutkey="4"/>
+  </window>
+  <window number="29" comment="MD - DCF77" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="DCF77" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 28" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 4" shortcutkey="3"/>
+    <shortcut action="ShowDCF77On" number="5" screen="window 30" shortcutkey="4"/>
+  </window>
+  <window number="28" comment="MD - Reboot" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Reboot" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 31" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 29" shortcutkey="3"/>
+    <shortcut action="Reboot" number="5" screen="" shortcutkey="4"/>
+  </window>
+  <window number="31" comment="MD - Keys" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Keys" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 52" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 28" shortcutkey="3"/>
+    <shortcut action="ShowKeysOn" number="5" screen="window 32" shortcutkey="4"/>
+  </window>
+  <window number="52" comment="MD - RS232" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="RS232" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 53" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 31" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 54" shortcutkey="4"/>
+  </window>
+  <window number="53" comment="MD - Consumption" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Dis mAh" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 68" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 52" shortcutkey="3"/>
+    <shortcut action="ShowConsumptionOn" number="5" screen="window 55" shortcutkey="4"/>
+  </window>
+  <window number="68" comment="MD - Performance" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="15" text="Rc CPU %" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 70" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 53" shortcutkey="3"/>
+    <shortcut action="ShowPerformanceOn" number="5" screen="window 69" shortcutkey="4"/>
+  </window>
+  <window number="70" comment="MD - BatCap" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="BatCap" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 72" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 68" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 71" shortcutkey="4"/>
+  </window>
+  <window number="72" comment="MD - LED Current" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="LEDCurr" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 73" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 70" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 74" shortcutkey="4"/>
+  </window>
+  <window number="73" comment="MD - Calibrate R46&#xA;Shunt for measuring input current from solar cell" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Cal R46" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 76" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 72" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 75" shortcutkey="4"/>
+  </window>
+  <window number="76" comment="MD - DCF77 accept level&#xA;Set accepted error tolerance in signal" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="15" text="DCF77 LVL" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 92" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 73" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 77" shortcutkey="4"/>
+  </window>
+  <window number="92" comment="MD - Pintest" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="15" text="Pintest" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 93" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 76" shortcutkey="3"/>
+    <shortcut action="PintestStart" number="5" screen="window 94" shortcutkey="4"/>
+  </window>
+  <window number="93" comment="MD - Logger" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Logger" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 100" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 92" shortcutkey="3"/>
+    <shortcut action="ShowLoggerOn" number="5" screen="window 95" shortcutkey="4"/>
+  </window>
+  <window number="100" comment="MD - Reboot counter" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="15" text="Reboots" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 101" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 93" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 102" shortcutkey="4"/>
+  </window>
+  <window number="101" comment="MD - Elapsed time meter" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="TimeOp" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 1" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 100" shortcutkey="3"/>
+    <shortcut action="ShowElapsedtimeOn" number="5" screen="window 103" shortcutkey="4"/>
+  </window>
+  <window number="11" comment="D - Show voltage&#xA;of the input" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="InputVoltage" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 1" shortcutkey="1"/>
+  </window>
+  <window number="21" comment="D - Show current&#xA;of the charger" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="ChargerCurrent" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 51" shortcutkey="1"/>
+  </window>
+  <window number="60" comment="D - Show battery mAh state&#xA;Only estimated..." focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="15" text="ChargerCharged" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 61" shortcutkey="1"/>
+  </window>
+  <window number="58" comment="D - Charger mode" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="ChargerMode" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 59" shortcutkey="1"/>
+    <shortcut action="ChargerDec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="ChargerInc" number="4" screen="" shortcutkey="3"/>
+  </window>
+  <window number="14" comment="D - Show light" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Light" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 4" shortcutkey="1"/>
+  </window>
+  <window number="32" comment="D - Show keys" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="KeyAdValue" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 31" shortcutkey="1"/>
+  </window>
+  <window number="54" comment="D - RS232 debug" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="15" text="Rs232Debug" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 52" shortcutkey="1"/>
+    <shortcut action="Rs232Dec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="Rs232Inc" number="4" screen="" shortcutkey="3"/>
+  </window>
+  <window number="55" comment="D - Show consumption" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="ConsumptionTotal" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 53" shortcutkey="1"/>
+  </window>
+  <window number="69" comment="D - Show performance&#xA;1. Value: Rc oscillator on time&#xA;2. Value: CPU runnig time" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="15" text="Performance" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 68" shortcutkey="1"/>
+  </window>
+  <window number="71" comment="D - BatCap config" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="15" text="BatCap" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 70" shortcutkey="1"/>
+    <shortcut action="BatCapDec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="BatCapInc" number="4" screen="" shortcutkey="3"/>
+  </window>
+  <window number="74" comment="D - Led current config" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="LedCurrent" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 72" shortcutkey="1"/>
+    <shortcut action="LedCurrDec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="LedCurrInc" number="4" screen="" shortcutkey="3"/>
+  </window>
+  <window number="75" comment="D - Calib resistor config" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="15" text="CalibRes" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 73" shortcutkey="1"/>
+    <shortcut action="CalRes46Dec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="CalRes46Inc" number="4" screen="" shortcutkey="3"/>
+  </window>
+  <window number="77" comment="D - DCF77 accept level" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Dcf77Level" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 76" shortcutkey="1"/>
+    <shortcut action="Dcf77LevelDec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="Dcf77LevelInc" number="4" screen="" shortcutkey="3"/>
+  </window>
+  <window number="94" comment="D - Pintest" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Pintest" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 92" shortcutkey="1"/>
+  </window>
+  <window number="95" comment="D - Logger" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Logger" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 93" shortcutkey="1"/>
+  </window>
+  <window number="102" comment="D - Reboot counter" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Rebootcounter" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 100" shortcutkey="1"/>
+  </window>
+  <window number="103" comment="D - Elapsed time meter" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Elapsedtimemeter" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 101" shortcutkey="1"/>
+  </window>
+  <subwindow Xpos="0" Ypos="0" Xsize="29" Ysize="6" number="56" comment="Battery low" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="BatLow" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="RET" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="RET" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="RET" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="RET" shortcutkey="4"/>
+    <shortcut action="" number="6" screen="RET" shortcutkey="102"/>
+  </subwindow>
+  <shortcut action="" number="57" screen="subwindow 56" shortcutkey="101"/>
+  <window number="63" comment="K - Keylock 0" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Keylock" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 64" shortcutkey="1"/>
+    <shortcut action="DisplayUpdateOff" number="3" screen="window 67" shortcutkey="2"/>
+    <shortcut action="DisplayUpdateOff" number="4" screen="window 67" shortcutkey="3"/>
+    <shortcut action="DisplayUpdateOff" number="5" screen="window 67" shortcutkey="4"/>
+  </window>
+  <window number="67" comment="K - Keylock 1" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Press 1" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 64" shortcutkey="1"/>
+    <shortcut action="ShowKeylockOn" number="3" screen="window 63" shortcutkey="2"/>
+    <shortcut action="ShowKeylockOn" number="4" screen="window 63" shortcutkey="3"/>
+    <shortcut action="ShowKeylockOn" number="5" screen="window 63" shortcutkey="4"/>
+  </window>
+  <window number="64" comment="K - Keylock 2" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Press 2" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="ShowKeylockOn" number="2" screen="window 63" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 65" shortcutkey="2"/>
+    <shortcut action="ShowKeylockOn" number="4" screen="window 63" shortcutkey="3"/>
+    <shortcut action="ShowKeylockOn" number="5" screen="window 63" shortcutkey="4"/>
+  </window>
+  <window number="65" comment="K - Keylock 3" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Press 3" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="ShowKeylockOn" number="2" screen="window 63" shortcutkey="1"/>
+    <shortcut action="ShowKeylockOn" number="3" screen="window 63" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 66" shortcutkey="3"/>
+    <shortcut action="ShowKeylockOn" number="5" screen="window 63" shortcutkey="4"/>
+  </window>
+  <window number="66" comment="K - Keylock 4" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Press 4" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="ShowKeylockOn" number="2" screen="window 63" shortcutkey="1"/>
+    <shortcut action="ShowKeylockOn" number="3" screen="window 63" shortcutkey="2"/>
+    <shortcut action="ShowKeylockOn" number="4" screen="window 63" shortcutkey="3"/>
+    <shortcut action="KeylockLeave" number="5" screen="window 15" shortcutkey="4"/>
+  </window>
+  <window number="96" comment="CC - Rc-5 up" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Rc5up" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="Rc5RecordDisable" number="2" screen="window 88" shortcutkey="1"/>
+    <shortcut action="Rc5RecordDown" number="3" screen="window 97" shortcutkey="4"/>
+  </window>
+  <window number="97" comment="CC - Rc-5 down" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Rc5down" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="Rc5RecordUp" number="2" screen="window 96" shortcutkey="1"/>
+    <shortcut action="Rc5RecordLeft" number="3" screen="window 98" shortcutkey="4"/>
+  </window>
+  <window number="98" comment="CC - Rc-5 left" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Rc5left" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="Rc5RecordDown" number="2" screen="window 97" shortcutkey="1"/>
+    <shortcut action="Rc5RecordRight" number="3" screen="window 99" shortcutkey="4"/>
+  </window>
+  <window number="99" comment="CC - Rc-5 right" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Rc5right" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="Rc5RecordLeft" number="2" screen="window 98" shortcutkey="1"/>
+    <shortcut action="Rc5RecordDisable" number="3" screen="window 88" shortcutkey="4"/>
+  </window>
+</MenuConfig>

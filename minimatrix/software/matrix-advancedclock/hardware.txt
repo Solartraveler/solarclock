@@ -1,0 +1,7 @@
+RTC clock: Used for display + rtc       (needs compare and overflow interrupts)
+timer C0: used for sound                (needs interrupt as long as sound is active)
+timer C1: used for performance counter  (no interrupts)
+timer D0: used for dcf77 sampling       (needs interrupt as long as signal is syncronizing)
+timer D1: 2MHz rc clock synchronization (no interrupts)
+timer E0: used for RC-5 decoding        (needs interrupt only if incoming signal is detected)
+timer E1: used for RFM12 decoding       (needs interrupt as long as module is active)
