@@ -241,6 +241,9 @@ static void redraw(int param) {
 		animategfx();
 	}
 	g_state.time = time(NULL) - 946684800; //[seconds] since 1.1.2000
+	g_state.timescache = g_state.time % 60;
+	g_state.timemcache = (g_state.time / 60) % 60;
+	g_state.timehcache = (g_state.time / (60*60)) % 60;
 	if (g_dispUpdate) {
 		g_dispUpdate();
 	}
@@ -284,6 +287,9 @@ void demo_init(void) {
 	g_settings.consumptionLedOneMax = CONSUMPTIONLEDONEMAX_NORMAL;
 	g_settings.dcf77Level = DCF77LEVEL_NORMAL;
 	g_state.time = time(NULL) - 946684800; //[seconds] since 1.1.2000
+	g_state.timescache = g_state.time % 60;
+	g_state.timemcache = (g_state.time / 60) % 60;
+	g_state.timehcache = (g_state.time / (60*60)) % 60;
 	g_state.ldr = 2048;
 	g_state.brightnessLdr = 100;
 	g_state.keyDebugAd = 700;

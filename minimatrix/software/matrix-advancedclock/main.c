@@ -466,12 +466,10 @@ static void update_alarmAndTimer(void) {
 		}
 	}
 	if (g_state.dcf77Synced) {
-		uint32_t temp = g_state.time;
-		uint8_t s = temp % 60;
-		if (s == 0) {
+		if (g_state.timescache == 0) {
 			//check alarms
-			uint8_t m = (temp / 60) % 60;
-			uint8_t h = (temp / (60*60)) % 24;
+			uint8_t m = g_state.timemcache;
+			uint8_t h = g_state.timehcache;
 			for (uint8_t i = 0; i < ALARMS; i++) {
 				if ((g_settings.alarmEnabled[i]) && (m == g_settings.alarmMinute[i]) && (h == g_settings.alarmHour[i])) {
 					uint8_t weekday = calcweekdayfromtimestamp(g_state.time);
@@ -633,10 +631,18 @@ static void run8xS(void) {
 		}
 	}
 	//update DCF77
-	if (dcf77_update()) {
-		dcf77_disable();
-		g_state.dcf77ResyncCd = 60*60*4; //4 hours to next sync
-		menu_keypress(100); //auto switch to clock, when in dcf77 view
+	if (dcf77_is_enabled()) {
+		if (dcf77_update()) {
+			dcf77_disable();
+			g_state.dcf77ResyncCd = 60*60*6; //6 hours to next sync
+			menu_keypress(100); //auto switch to clock, when in dcf77 view
+		}
+		if (g_state.dcf77ResyncTrytimeCd) {
+			g_state.dcf77ResyncTrytimeCd--;
+		} else {
+			dcf77_disable();
+			g_state.dcf77ResyncCd = 60*60*1; //1 hours to try to next sync
+		}
 	}
 	//read in IR key sensors
 	uint8_t irKey = 0;
@@ -644,8 +650,11 @@ static void run8xS(void) {
 		/*if we never synced, and tried for more than 10minutes and if no key
 		  press is required to stop sound, disable keys completely until we got
 		  sync.
+		  If we synced, but tried already more than one hour, we disable keys between 2:00 and 3:59 to reduce noise again.
 		*/
-		if ((g_state.dcf77Synced) || (g_state.time < (10*60)) ||
+		if (((g_state.dcf77Synced) &&
+		     ((g_state.dcf77ResyncTrytimeCd > (8*60*60)) || (g_state.timehcache > 3 ) || (g_state.timehcache < 2))) ||
+		    (g_state.time < (10*60)) ||
 		    (dcf77_is_enabled() == 0) || (g_state.soundEnabledCd)) {
 			irKey = irKeysRead();
 		}
@@ -733,6 +742,18 @@ static void run1xS(void) {
 	DEBUG_FUNC_ENTER(run1xS);
 	//increase time tick
 	g_state.time++;
+	g_state.timescache++;
+	if (g_state.timescache >= 60) {
+		g_state.timescache = 0;
+		g_state.timemcache++;
+		if (g_state.timemcache >= 60) {
+			g_state.timemcache = 0;
+			g_state.timehcache++;
+			if (g_state.timehcache >= 24) {
+				g_state.timehcache = 0;
+			}
+		}
+	}
 	//reset watchdog
 	wdt_reset();
 	//run calibration
@@ -740,6 +761,7 @@ static void run1xS(void) {
 	if (res != 0x7FFF) {
 		g_state.freqdelta = res;
 		dcf77_enable(g_state.freqdelta);
+		g_state.dcf77ResyncTrytimeCd = 2U*60U*60U*8U; //try for 2 hours to sync
 	}
 	//count down for no display off due to key press
 	if (g_state.displayNoOffCd) {
@@ -793,7 +815,6 @@ static uint8_t reset_print(void) {
 	if (resetsource & 0x10) {
 		rs232_sendstring_P(PSTR(" Debug"));
 	}
-
 	if (resetsource & 0x20) {
 		rs232_sendstring_P(PSTR(" Software"));
 	}

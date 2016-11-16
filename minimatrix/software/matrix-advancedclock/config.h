@@ -82,6 +82,9 @@ typedef struct {
 	uint16_t timerCountdownSecs; //[seconds]
 	uint8_t subsecond; //[1/8th second]
 	uint32_t time; //[seconds] since 1.1.2000
+	uint8_t timehcache; // [hours] value equivalent to ((time /(60*60) % 24), reduces cpu load by avoiding slow divisions
+	uint8_t timemcache; // [minutes] value equivalent to ((time / 60 % 60), reduces cpu load by avoiding slow divisions
+	uint8_t timescache; // [seconds] value equivalent to (time % 60), reduces cpu load by avoiding slow divisions
 	int16_t freqdelta; //remaining error [(1/100)%] of the internal RC resonator compared to 32.768kHz crystal
 	uint16_t ldr; //lower 14 bits: [AD] raw value, upper 2 bits: conversion resistor selected
 	uint8_t brightnessLdr; //current one if ldr would be used (before slow adjust)
@@ -93,6 +96,7 @@ typedef struct {
 	uint16_t keyDebugAd; //[AD] raw value converted value of key B
 	uint16_t gradcelsius10; //[1/10°C]
 	uint16_t dcf77ResyncCd; //count down in [seconds] until dcf77 resync starts, also saves settings
+	uint16_t dcf77ResyncTrytimeCd; //count down in [8*seconds] until resync is aborted
 	uint8_t dcf77Synced; //0: never synced, 1: synced.
 	uint8_t irKeyCd; //count down in [1/8s]
 	uint8_t irKeyLast; //0: None, 1..4: The keys A...D

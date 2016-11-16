@@ -100,30 +100,19 @@ void updateDcf77Text(void) {
 }
 
 void updateClockText(void) {
-	uint32_t temp = g_state.time;
-	uint8_t s = temp % 60;
-	uint8_t m = (temp / 60) % 60;
-	uint8_t h = (temp / (60*60)) % 24;
+	uint8_t s = g_state.timescache;
+	uint8_t m = g_state.timemcache;
+	uint8_t h = g_state.timehcache;
 	if (g_settings.clockShowSeconds) {
 		sprintf_P((char*)menu_strings[MENU_TEXT_Clock], PSTR("%2i:%02i:%02i"), h, m, s);
 		if (h < 10) {
 			menu_strings[MENU_TEXT_Clock][0] = '\t';
 		}
 	} else {
-			sprintf_P((char*)menu_strings[MENU_TEXT_Clock], PSTR("     %2i:%02i"), h, m);
+		sprintf_P((char*)menu_strings[MENU_TEXT_Clock], PSTR("     %2i:%02i"), h, m);
 		if (h < 10) {
 			menu_strings[MENU_TEXT_Clock][5] = '\t';
 		}
-	}
-}
-
-void updateKeylockText(void) {
-	uint32_t temp = g_state.time;
-	uint8_t m = (temp / 60) % 60;
-	uint8_t h = (temp / (60*60)) % 24;
-	sprintf_P((char*)menu_strings[MENU_TEXT_Keylock], PSTR("K  %2i:%02i"), h, m);
-	if (h < 10) {
-		menu_strings[MENU_TEXT_Clock][4] = '\t';
 	}
 }
 
@@ -812,7 +801,7 @@ static uint8_t powersaveweekNext(void) {
 
 static uint8_t powersaveOn(void) {
 	g_state.powersaveEnabled |= 2; //manual mode. cant be disabled by timer
-	g_dispUpdate = &updateKeylockText;
+	g_dispUpdate = &updateClockText;
 	return 1;
 }
 
@@ -908,7 +897,6 @@ unsigned char menu_action(unsigned short action) {
 		case MENU_ACTION_ShowAlarmOn:        g_dispUpdate = &updateAlarmText; break;
 		case MENU_ACTION_ShowAlarmadvancedOn: g_dispUpdate = &updateAlarmadvancedText; break;
 		case MENU_ACTION_ShowChargedOn:      g_dispUpdate = &updateChargedText; break;
-		case MENU_ACTION_ShowKeylockOn:      g_dispUpdate = &updateKeylockText; break;
 		case MENU_ACTION_ShowPerformanceOn:  g_dispUpdate = &updatePerformanceText; break;
 		case MENU_ACTION_ShowElapsedtimeOn:  g_dispUpdate = &updateElapsedtimeText; break;
 		case MENU_ACTION_ShowPowersavestartOn:g_dispUpdate = &updatePowersavestartText; break;

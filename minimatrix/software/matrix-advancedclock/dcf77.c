@@ -241,6 +241,9 @@ static uint8_t dcf77_analyze(uint8_t startindex) {
 		}
 		loggerlog_synced(utime, errorrate);
 		g_state.time = utime;
+		g_state.timescache = g_state.time % 60;
+		g_state.timemcache = (g_state.time / 60) % 60;
+		g_state.timehcache = (g_state.time / (60*60)) % 24;
 		g_state.dcf77Synced = 1;
 		updated = 1;
 	}

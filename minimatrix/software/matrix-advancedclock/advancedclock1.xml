@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<MenuConfig utf8="-1" Xsize="28" Ysize="5" compact="-1" graphviz="2" languages="1" multilang="0">
+<MenuConfig utf8="-1" Xsize="28" Ysize="5" compact="-1" graphviz="1" languages="1" multilang="0">
   <window number="30" comment="D - Show DCF77" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="DcfValue" number="1" multilang="0" storagemethod="1"/>
     <shortcut action="DisplayUpdateOff" number="2" screen="window 29" shortcutkey="1"/>
@@ -53,7 +53,7 @@
     <label Xpos="0" Ypos="0" font="14" text="Keylock" number="1" multilang="0" storagemethod="0"/>
     <shortcut action="" number="2" screen="window 86" shortcutkey="2"/>
     <shortcut action="" number="3" screen="window 34" shortcutkey="3"/>
-    <shortcut action="ShowKeylockOn" number="4" screen="window 63" shortcutkey="4"/>
+    <shortcut action="ShowClockOn" number="4" screen="window 63" shortcutkey="4"/>
   </window>
   <window number="86" comment="MM - Powersave" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="15" text="PwrSav" number="1" multilang="0" storagemethod="0"/>
@@ -484,7 +484,7 @@
   </subwindow>
   <shortcut action="" number="57" screen="subwindow 56" shortcutkey="101"/>
   <window number="63" comment="K - Keylock 0" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
-    <label Xpos="0" Ypos="0" font="14" text="Keylock" number="1" multilang="0" storagemethod="1"/>
+    <label Xpos="0" Ypos="0" font="14" text="Clock" number="1" multilang="0" storagemethod="1"/>
     <shortcut action="DisplayUpdateOff" number="2" screen="window 64" shortcutkey="1"/>
     <shortcut action="DisplayUpdateOff" number="3" screen="window 67" shortcutkey="2"/>
     <shortcut action="DisplayUpdateOff" number="4" screen="window 67" shortcutkey="3"/>
@@ -493,29 +493,29 @@
   <window number="67" comment="K - Keylock 1" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="Press 1" number="1" multilang="0" storagemethod="0"/>
     <shortcut action="" number="2" screen="window 64" shortcutkey="1"/>
-    <shortcut action="ShowKeylockOn" number="3" screen="window 63" shortcutkey="2"/>
-    <shortcut action="ShowKeylockOn" number="4" screen="window 63" shortcutkey="3"/>
-    <shortcut action="ShowKeylockOn" number="5" screen="window 63" shortcutkey="4"/>
+    <shortcut action="ShowClockOn" number="3" screen="window 63" shortcutkey="2"/>
+    <shortcut action="ShowClockOn" number="4" screen="window 63" shortcutkey="3"/>
+    <shortcut action="ShowClockOn" number="5" screen="window 63" shortcutkey="4"/>
   </window>
   <window number="64" comment="K - Keylock 2" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="Press 2" number="1" multilang="0" storagemethod="0"/>
-    <shortcut action="ShowKeylockOn" number="2" screen="window 63" shortcutkey="1"/>
+    <shortcut action="ShowClockOn" number="2" screen="window 63" shortcutkey="1"/>
     <shortcut action="" number="3" screen="window 65" shortcutkey="2"/>
-    <shortcut action="ShowKeylockOn" number="4" screen="window 63" shortcutkey="3"/>
-    <shortcut action="ShowKeylockOn" number="5" screen="window 63" shortcutkey="4"/>
+    <shortcut action="ShowClockOn" number="4" screen="window 63" shortcutkey="3"/>
+    <shortcut action="ShowClockOn" number="5" screen="window 63" shortcutkey="4"/>
   </window>
   <window number="65" comment="K - Keylock 3" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="Press 3" number="1" multilang="0" storagemethod="0"/>
-    <shortcut action="ShowKeylockOn" number="2" screen="window 63" shortcutkey="1"/>
-    <shortcut action="ShowKeylockOn" number="3" screen="window 63" shortcutkey="2"/>
+    <shortcut action="ShowClockOn" number="2" screen="window 63" shortcutkey="1"/>
+    <shortcut action="ShowClockOn" number="3" screen="window 63" shortcutkey="2"/>
     <shortcut action="" number="4" screen="window 66" shortcutkey="3"/>
-    <shortcut action="ShowKeylockOn" number="5" screen="window 63" shortcutkey="4"/>
+    <shortcut action="ShowClockOn" number="5" screen="window 63" shortcutkey="4"/>
   </window>
   <window number="66" comment="K - Keylock 4" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="Press 4" number="1" multilang="0" storagemethod="0"/>
-    <shortcut action="ShowKeylockOn" number="2" screen="window 63" shortcutkey="1"/>
-    <shortcut action="ShowKeylockOn" number="3" screen="window 63" shortcutkey="2"/>
-    <shortcut action="ShowKeylockOn" number="4" screen="window 63" shortcutkey="3"/>
+    <shortcut action="ShowClockOn" number="2" screen="window 63" shortcutkey="1"/>
+    <shortcut action="ShowClockOn" number="3" screen="window 63" shortcutkey="2"/>
+    <shortcut action="ShowClockOn" number="4" screen="window 63" shortcutkey="3"/>
     <shortcut action="KeylockLeave" number="5" screen="window 15" shortcutkey="4"/>
   </window>
   <window number="96" comment="CC - Rc-5 up" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">

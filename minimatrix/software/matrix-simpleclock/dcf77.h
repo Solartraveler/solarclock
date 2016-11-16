@@ -10,7 +10,8 @@ uint8_t dcf77_is_idle(void);
 
 void dcf77_getstatus(char * targetstring);
 
-//call this function every second
+//call this function at least every second
+//returns 1 if update occured, 0 if no update or disabled
 uint8_t dcf77_update(void);
 
 #endif
