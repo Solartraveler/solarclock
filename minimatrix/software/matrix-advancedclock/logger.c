@@ -15,6 +15,29 @@
 
 #define LOGGER_BASE_OFFSET 16
 
+
+/*
+Data format of the log:
+The first 16 bytes are reserved as signature and permanent data. Currently
+only 4 bytes are used. 12 can be used for other purpose.
+Change this by editing LOGGER_BASE_OFFSET.
+The first three bytes must have the text "Log".
+The fourth byte must indicate the size of the eeprom in 1kiB^n
+Ex 1 = 1kiB, 3 = 4kiB etc.
+If the signature is not found, the size is determined and the signature written
+to the eeprom. Determining the size destroys some of the old content of the
+eeprom.
+Every data entry in the eeprom as a fixed size of sizeof(logmessage_t).
+Writing is done by round robin from low to high address. If an entry does not
+fit in the reaming bytes at the end, the whole log entry is written at the
+beginning. So there might be some bytes permanently unused at the eeprom end.
+The log works without storing an index. Instead every entry has a upcounting
+number and on startup the entry with the highest numer is searched. As the 32bit
+number can be higher than the maximum writes to the eeprom, overflowing of
+this counter should be no problem.
+*/
+
+
 static uint16_t calcCrc(uint8_t * data, uint8_t size) {
 	uint8_t i;
 	uint16_t crc = 0;
@@ -115,6 +138,10 @@ static void logger_initializemem(void) {
 		sizeindex++;
 	}
 	g_state.logger.ksize = 1<<sizeindex;
+	if (g_state.logger.ksize >= 64) {
+		i2ceep_writebyte(3, sizeindex); //all other eeproms had their value already written by the overflow, but for 64k a test up to 128k would be needed
+	}
+	g_state.logger.maxentries = ((1024 * g_state.logger.ksize) - LOGGER_BASE_OFFSET) / sizeof(logmessage_t);
 	snprintf_P(buffer, DEBUG_CHARS, PSTR("New log in EEPROM with %ikB\r\n"), g_state.logger.ksize);
 	rs232_sendstring(buffer);
 }

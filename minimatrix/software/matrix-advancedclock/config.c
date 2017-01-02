@@ -73,6 +73,7 @@ void config_load(void) {
 		g_settings.clockShowSeconds = 1;
 		g_settings.timerMinutes = 5;
 		g_settings.debugRs232 = 0; //no debug prints
+		//g_settings.debugRs232 = 2; //debug prints
 		g_settings.consumptionLedOneMax = CONSUMPTIONLEDONEMAX_NORMAL;
 		g_settings.batteryCapacity = 1000;
 		g_settings.currentResCal = CURRENTRESCAL_NORMAL;

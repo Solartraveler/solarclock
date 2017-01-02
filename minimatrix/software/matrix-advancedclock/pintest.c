@@ -9,6 +9,39 @@
 #include "rs232.h"
 #include "main.h"
 
+
+/*How to interpret the results:
+Example print on serial port:
+1(0-1): 0x2 (1)
+8(1-0): 0x2 (0)
+34(4-2): 0x5 (0)
+35(4-3): 0x2 (0)
+72(9-0): 0x2 (0)
+73(9-1): 0x2 (0)
+74(9-2): 0x2 (0)
+
+interpretation (first number in brackets, see array ports, second in brackets
+is the pin, left number outside the brackets is portnumber*8+pinnumber):
+1(0-1): Pin 1. -> PORTA(0), PIN1
+74(9-2): Pin 2 -> PORTK(9), PIN2
+
+Bitmask as results, meaning:
+0x01 -> Pin set as pull down, but not read as zero -> some external periphery held it high
+0x02 -> Pin set as pull up, but not read as one -> some external periphery held it down
+0x04 -> All pins are pull up, expect one, which is pull down -> now pin should be read as zero.
+If 0x4 but not 0x1 is set, this usually means pins are soldered together by accident.
+Last number in brackets:
+(0) -> This error behaviour is ok, simply by external periphery not allowing the control
+of the pin by pullups.
+(1) -> This is likely an error and should be fixed.
+
+In the example above this means all pins are ok, except the first one.
+PORTA Pin1 is the LDR, and it pulls the pin down stronger than the internal
+pull-up, so a zero is read when a one is expectd. Repeating the test in darkness
+(LDR high resistance) will result in all ok.
+*/
+
+
 void pintest(uint8_t * resultmap) {
 	PORT_t * ports[PINTEST_NUMPORTS] = {&PORTA, &PORTB, &PORTC, &PORTD, &PORTE, &PORTF, &PORTH, &PORTJ, &PORTK, &PORTQ};
 	uint8_t originalstate[PINTEST_NUMPINS];
