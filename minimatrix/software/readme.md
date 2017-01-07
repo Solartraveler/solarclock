@@ -18,7 +18,7 @@ Its not containing all planned features of the clock, but is complete enough to 
 
 -Debug print and debug control over RS232
 
--Adjust brightnes according to surrounding brighness
+-Adjust brightness according to surrounding brighness
 
 -Charge the batteries
 
@@ -38,53 +38,53 @@ Its not containing all planned features of the clock, but is complete enough to 
 
 -Many many settings:
 
-  -Brighnes manual/automated
+..* Brightness manual/automated
 
-  -Show seconds/hide seconds
+..* Show seconds/hide seconds
 
-  -Manual charger control
+..* Manual charger control
 
-  -Set mAh of battery
+..* Set mAh of battery
 
-  -Set calibrated value for charge measurement
+..* Set calibrated value for charge measurement
 
-  -Set level for accepted DCF77 error
+..* Set level for accepted DCF77 error
 
-  -Set refreshrate
+..* Set refreshrate
 
-  -Set volume of beep
+..* Set volume of beep
 
-  -Set frequency of beep
+..* Set frequency of beep
 
-  -Set current consumption for used LEDs
+..* Set current consumption for used LEDs
 
-  -Set time until alarm goes off anyway
+..* Set time until alarm goes off anyway
 
-  -Select which type debug messages should be printed on the RS232 interface
+..* Select which type debug messages should be printed on the RS232 interface
 
-  -Set charger between on/off/automatic
+..* Set charger between on/off/automatic
 
-  -Selects if clock should switch display completely off when dark
+..* Selects if clock should switch display completely off when dark
 
 -Showing many informations:
 
-  -Current voltage
+..* Current voltage
 
-  -Current charging current
+..* Current charging current
 
-  -Current charged state of battery
+..* Current charged state of battery
 
-  -Consument mAh since power on
+..* Consumend mAh since power on
 
-  -Quality of DCF77 signal
+..* Quality of DCF77 signal
 
-  -Raw value of one key
+..* Raw value of one key
 
-  -Raw value of lightning sensor
+..* Raw value of lightning sensor
 
-  -Show RC oscillator and CPU usage (percentage of time they are not stopped)
+..* Show RC oscillator and CPU usage (percentage of time they are not stopped)
 
-  -And shows even more with RS232 connected
+..* And shows even more with RS232 connected
 
 ### Known bugs:
 
@@ -94,7 +94,7 @@ Its not containing all planned features of the clock, but is complete enough to 
 
 Unlike the simple clock version, the advanced version contains source code from third paries:
 
-The RC-5 Decodes software is from Peter Dannegger.
+The RC-5 decoder software is from Peter Dannegger.
 
 The two wire interface library is from Atmel Corporation.
 
@@ -102,7 +102,7 @@ The two wire interface library is from Atmel Corporation.
 
 -Event logger in external I2C EEPROM (reboots and cause of it, temperature, chargings, dcf77 sync times and time delta ...)
 
-  -Supports eeproms with one I2C address, two bytes for addressing and at least 16 byte page size.
+..* Supports eeproms with one I2C address, two bytes for addressing and at least 16 byte page size.
    This is usually the case for all 8KB - 64KB eeproms. Each log entry requires 23 bytes.
    Storing is done FIFO based without explicit index storing, so eeprom life is maximized.
    Size detection is done automatically on first startup.
