@@ -1,7 +1,10 @@
-RTC clock: Used for display + rtc       (needs compare and overflow interrupts)
-timer C0: used for sound                (needs interrupt as long as sound is active)
-timer C1: used for performance counter  (no interrupts)
-timer D0: used for dcf77 sampling       (needs interrupt as long as signal is syncronizing)
-timer D1: 2MHz rc clock synchronization (no interrupts)
-timer E0: used for RC-5 decoding        (needs interrupt only if incoming signal is detected)
-timer E1: used for RFM12 decoding       (needs interrupt as long as module is active)
+          Interrupt priority:   Usage:
+RTC clock: compare-high         Used for display
+RTC clock: overflow-low         Used for clock
+timer C0:  overflow-low         used for sound                (needs interrupt as long as sound is active)
+timer C1:  --                   used for performance counter
+timer D0:  overflow-medium      used for dcf77 sampling       (needs interrupt as long as signal is syncronizing)
+timer D1:  --                   2MHz rc clock synchronization
+timer E0:  overflow-low         used for RC-5 decoding        (needs interrupt only if incoming signal is detected)
+timer E1:  overflow-low         used for RFM12 decoding       (needs interrupt as long as module is active)
+USART E0:  tx-medium            used for RS232 print           medium level permits debug print in low level interrupts

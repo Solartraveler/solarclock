@@ -12,6 +12,7 @@
 #define DEBrfm12_init 202
 #define DEBrfm12_standby 204
 #define DEBrfm12_update 206
+#define DEBrfm12_timer 208
 
 
 #define FUNCDEBUG

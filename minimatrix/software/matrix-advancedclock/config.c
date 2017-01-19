@@ -1,5 +1,5 @@
 /* Matrix-Advancedclock
-  (c) 2014-2016 by Malte Marwedel
+  (c) 2014-2017 by Malte Marwedel
   www.marwedels.de/malte
 
   This program is free software; you can redistribute it and/or modify
@@ -30,6 +30,9 @@
 #define EEPROM_CONFIG_BACKUP_POS (void*)(EEPROM_CRC_POS + 4)
 #define EEPROM_CRC_BACKUP_POS ((uint16_t*)(EEPROM_CONFIG_BACKUP_POS + sizeof(settings_t)))
 
+#define EEPROM_CONFIG_LEGACY_POS (void*)0
+#define EEPROM_CRC_LEGACY_POS ((uint16_t*)(EEPROM_CONFIG_LEGACY_POS + sizeof(settingsLegacy_t)))
+
 static uint16_t calcCrc(uint8_t * data, uint8_t size) {
 	uint8_t i;
 	uint16_t crc = 0;
@@ -39,13 +42,25 @@ static uint16_t calcCrc(uint8_t * data, uint8_t size) {
 	return crc;
 }
 
-uint8_t config_read_eep(void * addressconfigeep, uint16_t * addresscrceep) {
+static uint8_t config_read_eep(void * addressconfigeep, uint16_t * addresscrceep) {
 	eeprom_read_block(&g_settings, addressconfigeep, sizeof(settings_t));
 	uint16_t crcShould = eeprom_read_word(addresscrceep);
 	uint16_t crcIs = calcCrc((uint8_t*)(&g_settings), sizeof(settings_t));
 	if (crcIs == crcShould) {
 		return 1;
 	}
+	g_settings.debugRs232 = 1; //basic debug prints, no RX
+	return 0;
+}
+
+static uint8_t config_read_eep_legacy(void * addressconfigeep, uint16_t * addresscrceep) {
+	eeprom_read_block(&g_settings, addressconfigeep, sizeof(settingsLegacy_t));
+	uint16_t crcShould = eeprom_read_word(addresscrceep);
+	uint16_t crcIs = calcCrc((uint8_t*)(&g_settings), sizeof(settingsLegacy_t));
+	if (crcIs == crcShould) {
+		return 1;
+	}
+	g_settings.debugRs232 = 1; //basic debug prints, no RX
 	return 0;
 }
 
@@ -55,6 +70,11 @@ void config_load(void) {
 	if (!success) {
 		rs232_sendstring_P(PSTR("Reading backup settings...\r\n"));
 		success = config_read_eep(EEPROM_CONFIG_BACKUP_POS, EEPROM_CRC_BACKUP_POS);
+	}
+	//check for upgrade from old settings
+	if (!success) {
+		rs232_sendstring_P(PSTR("Reading legacy settings...\r\n"));
+		success = config_read_eep_legacy(EEPROM_CONFIG_LEGACY_POS, EEPROM_CRC_LEGACY_POS);
 	}
 	if (!success) {
 		rs232_sendstring_P(PSTR("New settings\r\n"));
@@ -78,6 +98,8 @@ void config_load(void) {
 		g_settings.batteryCapacity = 1000;
 		g_settings.currentResCal = CURRENTRESCAL_NORMAL;
 		g_settings.dcf77Level = DCF77LEVEL_NORMAL;
+		g_settings.rfm12passcode = 123;
+		g_settings.summertimeadjust = 1;
 	} else {
 		rs232_sendstring_P(PSTR("Valid settings in EEPROM\r\n"));
 		//validate value ranges
@@ -131,6 +153,12 @@ void config_load(void) {
 		}
 		if (g_settings.rfm12mode > 3) {
 			g_settings.rfm12mode = 0;
+		}
+		if (g_settings.rfm12passcode > 999) {
+			g_settings.rfm12passcode = 999;
+		}
+		if (g_settings.summertimeadjust > 1) {
+			g_settings.summertimeadjust = 1;
 		}
 	}
 }

@@ -1,5 +1,5 @@
 /* Matrix-Advancedclock
-  (c) 2014-2016 by Malte Marwedel
+  (c) 2014-2017 by Malte Marwedel
   www.marwedels.de/malte
 
   This program is free software; you can redistribute it and/or modify
@@ -87,63 +87,97 @@ unsigned char menu_byte_get(MENUADDR addr) {
 	return pgm_read_byte(menudata+addr);
 }
 
-void updateVoltageText(void) {
+uint8_t updateVoltageText(void) {
 	sprintf_P((char*)menu_strings[MENU_TEXT_InputVoltage], PSTR("%umV"), g_state.batVoltage);
+	return 1;
 }
 
-void updateCurrentText(void) {
+uint8_t updateCurrentText(void) {
 	sprintf_P((char*)menu_strings[MENU_TEXT_ChargerCurrent], PSTR("%imA"), g_state.chargerCurrent);
+	return 1;
 }
 
-void updateDcf77Text(void) {
+uint8_t updateDcf77Text(void) {
 	dcf77_getstatus((char*)menu_strings[MENU_TEXT_DcfValue]);
+	return 1;
 }
 
-void updateClockText(void) {
+/*
+The static variable helps caching the text printing and avoiding calls to
+menu_update if nothing changed
+*/
+uint8_t updateClockText(void) {
+	static uint8_t slast = 255;
+	static uint8_t mlast = 255;
+	static uint8_t hlast = 255;
+	static uint8_t clockShowSecondslast = 255;
 	uint8_t s = g_state.timescache;
 	uint8_t m = g_state.timemcache;
 	uint8_t h = g_state.timehcache;
-	if (g_settings.clockShowSeconds) {
-		sprintf_P((char*)menu_strings[MENU_TEXT_Clock], PSTR("%2i:%02i:%02i"), h, m, s);
-		if (h < 10) {
-			menu_strings[MENU_TEXT_Clock][0] = '\t';
+	if ((g_settings.clockShowSeconds != clockShowSecondslast) || (mlast != m) ||
+	    (hlast != h) || ((slast != s) && (g_settings.clockShowSeconds))) {
+		clockShowSecondslast = g_settings.clockShowSeconds;
+		slast = s;
+		mlast = m;
+		hlast = h;
+		if (g_settings.clockShowSeconds) {
+			sprintf_P((char*)menu_strings[MENU_TEXT_Clock], PSTR("%2i:%02i:%02i"), h, m, s);
+			if (h < 10) {
+				menu_strings[MENU_TEXT_Clock][0] = '\t';
+			}
+		} else {
+			sprintf_P((char*)menu_strings[MENU_TEXT_Clock], PSTR("     %2i:%02i"), h, m);
+			if (h < 10) {
+				menu_strings[MENU_TEXT_Clock][5] = '\t';
+			}
 		}
-	} else {
-		sprintf_P((char*)menu_strings[MENU_TEXT_Clock], PSTR("     %2i:%02i"), h, m);
-		if (h < 10) {
-			menu_strings[MENU_TEXT_Clock][5] = '\t';
-		}
+		return 1;
 	}
+	return 0;
 }
 
-void updateDateText(void) {
+uint8_t updateDateText(void) {
+	static uint32_t timelast = 0;
 	uint32_t temp = g_state.time;
-	uint16_t dofy;
-	uint16_t y = yearsince2000(temp, &dofy);
-	uint8_t month;
-	uint8_t d;
-	monthdayfromdayinyear(dofy, y, &month, &d);
-	month++; //starts with 0
-	d++; //starts with 0
-	sprintf_P((char*)menu_strings[MENU_TEXT_Date], PSTR("%02i.%02i.%2i"), (uint16_t)d, (uint16_t)month, y);
+	if (temp != timelast) {
+		timelast = temp;
+		uint16_t dofy;
+		uint16_t y = yearsince2000(temp, &dofy);
+		uint8_t month;
+		uint8_t d;
+		monthdayfromdayinyear(dofy, y, &month, &d);
+		month++; //starts with 0
+		d++; //starts with 0
+		sprintf_P((char*)menu_strings[MENU_TEXT_Date], PSTR("%02i.%02i.%2i"), (uint16_t)d, (uint16_t)month, y);
+		return 1;
+	}
+	return 0;
 }
 
-void updateTemperatureText(void) {
-	uint16_t gradcelsius10th = g_state.gradcelsius10 % 10;
-	uint8_t gradcelsius = g_state.gradcelsius10 / 10;
-	sprintf_P((char*)menu_strings[MENU_TEXT_Temperature], PSTR( "%i.%u°C"), gradcelsius, gradcelsius10th);
+uint8_t updateTemperatureText(void) {
+	static uint16_t gradcelsiuslast = 0xFFFF;
+	if (g_state.gradcelsius10 != gradcelsiuslast) {
+		gradcelsiuslast = g_state.gradcelsius10;
+		uint16_t gradcelsius10th = g_state.gradcelsius10 % 10;
+		uint8_t gradcelsius = g_state.gradcelsius10 / 10;
+		sprintf_P((char*)menu_strings[MENU_TEXT_Temperature], PSTR( "%i.%u°C"), gradcelsius, gradcelsius10th);
+		return 1;
+	}
+	return 0;
 }
 
-void updateKeysText(void) {
+uint8_t updateKeysText(void) {
 	sprintf_P((char*)menu_strings[MENU_TEXT_KeyAdValue], PSTR("B:%i"), g_state.keyDebugAd);
+	return 1;
 }
 
-void updateConsumptionText(void) {
+uint8_t updateConsumptionText(void) {
 	uint32_t mah = (g_state.consumption/((uint64_t)60*(uint64_t)60*(uint64_t)1000));
 	sprintf_P((char*)menu_strings[MENU_TEXT_ConsumptionTotal], PSTR("%lumAh"), (unsigned long)mah);
+	return 1;
 }
 
-void updateAlarmText(void) {
+uint8_t updateAlarmText(void) {
 	sprintf_P((char*)menu_strings[MENU_TEXT_Alarm], PSTR("%2i:%02i %s"), g_settings.alarmHour[0], g_settings.alarmMinute[0], g_settings.alarmEnabled[0] ? "On": "--");
 	if (g_settings.alarmHour[0] < 10) {
 		menu_strings[MENU_TEXT_Alarm][0] = '\t';
@@ -160,9 +194,10 @@ void updateAlarmText(void) {
 			menu_strings[MENU_TEXT_Alarm][7] = '\t';
 		}
 	}
+	return 1;
 }
 
-void updateAlarmadvancedText(void) {
+uint8_t updateAlarmadvancedText(void) {
 	if (g_state.alarmEnterState <= 2) {
 		sprintf_P((char*)menu_strings[MENU_TEXT_Alarmadvanced], PSTR("%2i:%02i %s"), g_settings.alarmHour[1], g_settings.alarmMinute[1], g_settings.alarmEnabled[1] ? "On": "--");
 		if (g_settings.alarmHour[1] < 10) {
@@ -198,9 +233,10 @@ void updateAlarmadvancedText(void) {
 			bitmask >>= 1;
 		}
 	}
+	return 1;
 }
 
-void updatePowersavestartText(void) {
+uint8_t updatePowersavestartText(void) {
 	sprintf_P((char*)menu_strings[MENU_TEXT_Powersavestart], PSTR("%2i:%02i"), g_settings.powersaveHourStart, g_settings.powersaveMinuteStart);
 	if (g_settings.powersaveHourStart < 10) {
 		menu_strings[MENU_TEXT_Powersavestart][0] = '\t';
@@ -214,9 +250,10 @@ void updatePowersavestartText(void) {
 			menu_strings[MENU_TEXT_Powersavestart][4] = '\t';
 		}
 	}
+	return 1;
 }
 
-void updatePowersavestopText(void) {
+uint8_t updatePowersavestopText(void) {
 	sprintf_P((char*)menu_strings[MENU_TEXT_Powersavestop], PSTR("%2i:%02i"), g_settings.powersaveHourStop, g_settings.powersaveMinuteStop);
 	if (g_settings.powersaveHourStop < 10) {
 		menu_strings[MENU_TEXT_Powersavestop][0] = '\t';
@@ -230,9 +267,10 @@ void updatePowersavestopText(void) {
 			menu_strings[MENU_TEXT_Powersavestop][4] = '\t';
 		}
 	}
+	return 1;
 }
 
-void updatePowersaveweekText(void) {
+uint8_t updatePowersaveweekText(void) {
 	uint8_t i;
 	uint8_t mask = g_settings.powersaveWeekdays;
 	for (i = 0; i < 7; i++) {
@@ -247,10 +285,11 @@ void updatePowersaveweekText(void) {
 		}
 		mask >>= 1;
 	}
+	return 1;
 }
 
 
-void updateTimerText(void) {
+uint8_t updateTimerText(void) {
 	if (g_state.timerCountdownSecs) {
 		uint8_t h = g_state.timerCountdownSecs / (60*60);
 		uint8_t m = g_state.timerCountdownSecs / 60 % 60;
@@ -263,50 +302,58 @@ void updateTimerText(void) {
 	} else {
 		sprintf_P((char*)menu_strings[MENU_TEXT_Timer], PSTR("%imin"), g_settings.timerMinutes);
 	}
+	return 1;
 }
 
 //direct A/D value from LDR
-void updateLightText(void) {
+uint8_t updateLightText(void) {
 	uint8_t workmode = g_state.ldr >> 14;
 	sprintf_P((char*)menu_strings[MENU_TEXT_Light], PSTR("%i:%i"), workmode, g_state.ldr & 0x3FFF);
+	return 1;
 }
 
-void updateChargedText(void) {
+uint8_t updateChargedText(void) {
 	uint16_t mah = 0;
 	mah = g_state.batteryCharged / (60*60);
 	sprintf_P((char*)menu_strings[MENU_TEXT_ChargerCharged], PSTR("%umAh"), mah);
+	return 1;
 }
 
 //value for driving the display
-void updateDispbrightText(void) {
+uint8_t updateDispbrightText(void) {
 	if (g_settings.brightnessAuto) {
 		sprintf_P((char*)menu_strings[MENU_TEXT_Brightness], PSTR("%i<%i"), g_state.brightnessLdr, g_settings.brightness);
 	} else {
 		sprintf_P((char*)menu_strings[MENU_TEXT_Brightness], PSTR("%i>%i"), g_state.brightnessLdr, g_settings.brightness);
 	}
+	return 1;
 }
 
-void updatePerformanceText(void) {
+uint8_t updatePerformanceText(void) {
 	unsigned int rcperc = g_state.performanceRcRunning * 100 / 256;
 	unsigned int cpuperc = g_state.performanceCpuRunning * 100 / 256;
 	sprintf_P((char*)menu_strings[MENU_TEXT_Performance], PSTR("%u%%%u%%"), rcperc, cpuperc);
+	return 1;
 }
 
-void updateElapsedtimeText(void) {
+uint8_t updateElapsedtimeText(void) {
 	uint32_t temp = g_settings.usageseconds;
 	uint16_t days = temp / (60UL*60UL*24UL);
 	sprintf_P((char*)menu_strings[MENU_TEXT_Elapsedtimemeter], PSTR("%ud"), days);
+	return 1;
 }
 
-void updateRc5codeText(void) {
+uint8_t updateRc5codeText(void) {
 	sprintf_P((char*)menu_strings[MENU_TEXT_Rc5up], PSTR("U:%u"), g_settings.rc5codes[2]);
 	sprintf_P((char*)menu_strings[MENU_TEXT_Rc5down], PSTR("D:%u"), g_settings.rc5codes[1]);
 	sprintf_P((char*)menu_strings[MENU_TEXT_Rc5left], PSTR("L:%u"), g_settings.rc5codes[0]);
 	sprintf_P((char*)menu_strings[MENU_TEXT_Rc5right], PSTR("R:%u"), g_settings.rc5codes[3]);
+	return 1;
 }
 
-void updateLoggerText(void) {
+uint8_t updateLoggerText(void) {
 	sprintf_P((char*)menu_strings[MENU_TEXT_Logger], PSTR("%ik:%u"), g_state.logger.ksize, g_state.logger.nextentry);
+	return 1;
 }
 
 /*This function updates all text, which are only changed as response to user
@@ -366,6 +413,12 @@ static void updateText(void) {
 	} else {
 		sprintf_P((char*)menu_strings[MENU_TEXT_Pintest], PSTR("OK"));
 	}
+	if (g_settings.summertimeadjust) {
+		sprintf_P((char*)menu_strings[MENU_TEXT_Summertime], PSTR("Adj auto"));
+	} else {
+		sprintf_P((char*)menu_strings[MENU_TEXT_Summertime], PSTR("Adj off"));
+	}
+	sprintf_P((char*)menu_strings[MENU_TEXT_Rfm12passkey], PSTR("Key %03u"), g_settings.rfm12passcode);
 }
 
 static uint8_t dcf77On(void) {
@@ -880,6 +933,31 @@ static uint8_t pintestStart(void) {
 	return 1;
 }
 
+static uint8_t summertimeAuto(void) {
+	g_settings.summertimeadjust = 1;
+	updateText();
+	return 1;
+}
+
+static uint8_t summertimeOff(void) {
+	g_settings.summertimeadjust = 0;
+	updateText();
+	return 1;
+}
+
+static uint8_t rfm12PasskeyMod(uint8_t index) {
+	uint8_t val[3];
+	if (index < 3) {
+		val[0] = g_settings.rfm12passcode % 10;
+		val[1] = (g_settings.rfm12passcode / 10) % 10;
+		val[2] = (g_settings.rfm12passcode / 100);
+		val[index] = (val[index] + 1 ) % 10;
+		g_settings.rfm12passcode = val[2]*100 + val[1]*10 + val[0];
+	}
+	updateText();
+	return 1;
+}
+
 unsigned char menu_action(unsigned short action) {
 	unsigned char redraw = 0;
 	switch(action) {
@@ -964,6 +1042,11 @@ unsigned char menu_action(unsigned short action) {
 		case MENU_ACTION_PintestStart:       redraw = pintestStart(); break;
 		case MENU_ACTION_PowersaveOn:        redraw = powersaveOn(); break;
 		case MENU_ACTION_KeylockLeave:       redraw = keylockLeave(); break;
+		case MENU_ACTION_SummertimeAuto:     redraw = summertimeAuto(); break;
+		case MENU_ACTION_SummertimeOff:      redraw = summertimeOff(); break;
+		case MENU_ACTION_Rfm12passkey1:      redraw = rfm12PasskeyMod(0); break;
+		case MENU_ACTION_Rfm12passkey10:     redraw = rfm12PasskeyMod(1); break;
+		case MENU_ACTION_Rfm12passkey100:    redraw = rfm12PasskeyMod(2); break;
 	}
 	if (g_dispUpdate) {
 		g_dispUpdate();

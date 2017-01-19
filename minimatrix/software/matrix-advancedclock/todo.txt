@@ -3,10 +3,13 @@ Display flicker -> still no idea
 Power save mode selectable         -> Done
 Power save mode for specific times -> Done
 RC-5 Receiver                      -> Done
-RFM12 RX/TX                        -> WIP (can communicate, however no RX possible - crystal seems not to start?)
+RFM12 RX/TX                        -> RX working.
 Advanced timer                     -> Done
 Pin Selftest                       -> Done
 Logger                             -> Done
 Reboot/runtime counter             -> Done
 Redundant config load/store        -> Done
 Crashes on keypress                -> TODO (cause likely enabling of RC-5 decoder)
+Touch keys -> TODO
+Smooth brighntess adjust -> TODO
+Summer winter time adjust -> TODO

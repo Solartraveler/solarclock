@@ -18,6 +18,8 @@
 #define ALARMS 2
 #define RC5KEYS 4
 
+#define RFM12_KEYQUEUESIZE 4
+
 typedef struct {
 	/* Level of debug:
 		0: no rs232 out
@@ -66,7 +68,45 @@ typedef struct {
 	uint8_t powersaveHourStop; //standby stops when the time is equal to this value [hours]
 	uint8_t powersaveMinuteStop;//standby stops when the time is equal to this value [minutes]
 	uint8_t powersaveWeekdays;  //each bit one day of the week. lsb = monday
+	//new settings start here
+	uint16_t rfm12passcode; //initial number which must be entered in order to accept commands. 0...999
+	uint8_t summertimeadjust; //0 = no summer time adjust, 1 = summer time adjust
+	uint8_t reserved[32]; //decrease if new settings get in, so no crc mismatch on next start
 } settings_t;
+
+//upgrade path from old settings to new stettings:
+typedef struct {
+	uint8_t debugRs232;
+	uint8_t alarmEnabled[ALARMS];  //0: Disabled, 1: Enabled
+	uint8_t alarmHour[ALARMS];     //0...23 [hours]
+	uint8_t alarmMinute[ALARMS];   //0...59 [minutes]
+	uint8_t alarmWeekdays[ALARMS];  //each bit one day of the week. lsb = monday
+	uint16_t timerMinutes; //[minutes]
+	uint8_t brightnessAuto; //0: Manual brightness control, 1: Automatic brightness control
+	uint8_t brightness;     //brighntess for manual brightness
+	uint8_t brightnessNoOff; //if 1, never go to brightness 0.
+	uint8_t clockShowSeconds; //[seconds]
+	uint8_t soundAutoOffMinutes; //[minutes]
+	uint8_t soundVolume;     //0: min, 255: max
+	uint16_t soundFrequency; //[Hz]
+	uint16_t displayRefresh; //[Hz]
+	uint8_t chargerMode; //0: auto, 1: off, 2: on (on gets converted to auto on startup)
+	uint16_t consumptionLedOneMax; //consuption in [µA] of one dot lighting 1/5 (5 lines) of the time
+	uint16_t batteryCapacity; //[mAh]
+	uint16_t currentResCal; //[10*mOhm] Calibrated value of the resistor (R46) for measuring the input current in 1/100 th of Ohm
+	uint16_t dcf77Level; //number of errors one sampled minute (38bit) might have
+	uint8_t rc5mode;     //0: off, 1: on for 5min if user entered something or beeper is enabled. 2: always on
+	uint16_t rc5codes[RC5KEYS]; //infrared code for key left, 0 = none, [0] = left, [1] = down, [2] = up, [3] = right
+	uint8_t rfm12mode;   //0: off, 1: on for 1min if user entered something or beeper is enabled. 2: 5min if user entered something or beeper is enabled, 3: always on
+	uint32_t reboots;    //number of power ups
+	uint32_t usageseconds; //number of seconds this device has run [seconds]
+	uint8_t powersaveHourStart; //standby starts when the time is equal to this value and the weekday fits [hours]
+	uint8_t powersaveMinuteStart; //standby starts when the time is equal to this value and the weekday fits [minutes]
+	uint8_t powersaveHourStop; //standby stops when the time is equal to this value [hours]
+	uint8_t powersaveMinuteStop;//standby stops when the time is equal to this value [minutes]
+	uint8_t powersaveWeekdays;  //each bit one day of the week. lsb = monday
+} settingsLegacy_t;
+
 
 typedef struct {
 	uint8_t ksize;
@@ -126,6 +166,7 @@ typedef struct {
 	uint8_t powersaveenterstate; //state for the three edit fields. 0...1 for hour/minute edit 0...6 for weekday edit field
 	uint8_t powersaveEnabled; // 0 = disabled, 1 = enabled by timer, 2 = enabled by user. 3 = enabled by timer and user. If enabled, only enable display after an keypress for a short time
 	uint8_t pintesterrors; //1 = pintest detected errors, 0 = no errors or not run
+	uint8_t rfm12keyqueue[RFM12_KEYQUEUESIZE]; //keys from the rfm12 module
 	loggerstate_t logger;
 } sysstate_t;
 

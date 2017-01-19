@@ -43,16 +43,34 @@ http://www.mikrocontroller.net/topic/71682?goto=3896183
 
 The used protocoll here should be finally compatible with his protocol.
 Protocol of the bytes is:
-0...4: Sync data: 0xAA + 0xAA + 0xAA + 0x2D + 0xD4
-5:     Status byte: bit 0 set: received ok
-6:     Number of bytes to send
-7...N: Data bytes: Only if number of bytes is > 0.
-       If at least one data byte, first byte(7) is an id.
-       Receiver accepts package when ID is different to the previous one.
-       Transmitter increases ID if the reception has been actknowledged or the
-       the actknowledge is not received within some timeout.
-N+1:   CRC of data bytes 5...N
-N+2:   0
+
+TX POS  RX POS
+0...4   ------: Sync data: 0xAA + 0xAA + 0xAA + 0x2D + 0xD4
+5       0     : Status byte: bit 0 set: received ok
+6       1     : Number of data bytes to send (id not counted!)
+7...N   2...M : Data bytes: Only if number of bytes is > 0.
+                If at least one data byte, first byte(7) is an id.
+                Receiver accepts package when ID is different to the previous
+                one.
+                Transmitter increases ID if the reception has been actknowledged
+                or the the actknowledge is not received within some timeout.
+N+1     M+1   : CRC of bytes 5...N/0...M
+N+2     ------: 0 - not received
+Speciality in protocol: If one byte is 0x0 or 0xFF, the next byte will be
+completely ignored (stuff byte).
+The default values will result in a re-sent after 10ms if no ACT has been
+received.
+
+Sample reception:
+00: Status
+AA: Stuff byte because previous byte is 0
+01: Number of data bytes to send = 1
+05: The 5th packet to send
+77: The Data - ascii w
+2F: CRC (excluding stuff byte and excluding CRC itself)
+E2: Garbage
+
+
 
 https://lowpowerlab.com/forum/index.php?topic=115.0
 The observation fits with my own one: 0x8201 sets it to low power mode.
@@ -66,6 +84,7 @@ I used 0x8201 and now it sleeps and draws only about 10µA
 #include <stdlib.h>
 #include <avr/interrupt.h>
 #include <ctype.h>
+#include <util/crc16.h>
 
 #include "main.h"
 #include <util/delay.h>
@@ -93,10 +112,25 @@ RFM12 (not RFM12B) needs pullups on FSK DATA nFFS
 #define RFM12_TIMER_POWER PR_PRPE
 #define RFM12_TIMER_POWER_BIT PR_TC1_bm
 
-#define RFM12_DATABUFFERSIZE 128
+#define RFM12_DATABUFFERSIZE 64
 
-volatile char rfm12_rxbuffer[RFM12_DATABUFFERSIZE];
-volatile uint8_t rfm12_rxbufferidx;
+//#define RFM12_DEBUG
+
+//these two variables are only used within the interrupt routine, so no volatile
+//for non interrupt code writeback-alwaysread required
+uint8_t rfm12_rxbuffer[RFM12_DATABUFFERSIZE];
+uint8_t rfm12_rxbufferidx;
+uint8_t rfm12_rxtimeout;
+uint8_t rfm12_skipnext;
+uint8_t rfm12_lastrxid;
+
+//decoded packet
+volatile uint8_t rfm12_rxdata[RFM12_DATABUFFERSIZE];
+volatile uint8_t rfm12_rxdataidx;
+
+//internal state variable
+uint8_t rfm12_passstate; //if 3, commands are accepted
+
 
 #if 0
 //uses hardware (not working)
@@ -161,6 +195,7 @@ uint16_t rfm12_command(uint16_t outdata) {
 }
 #endif
 
+#if 1
 static uint8_t rfm12_ready(void) {
 	uint8_t status = 0;
 	PORTC.OUTCLR = (1<<RFM12_SELECT);
@@ -172,7 +207,7 @@ static uint8_t rfm12_ready(void) {
 	PORTC.OUTCLR = (1<<RFM12_SELECT);
 	return status;
 }
-
+#endif
 
 //the irq pin gets low if the rfm12 has detected something interesting
 //negate -> 1 = interesting.
@@ -180,11 +215,11 @@ static uint8_t rfm12_irqstatus(void) {
 	return ((~(PORTB.IN >> RFM12_NIRQ)) & 1);
 }
 
-uint16_t rfm12_status(void) {
+static uint16_t rfm12_status(void) {
 	return rfm12_command(0x0); //status read
 }
 
-uint16_t rfm12_showstatus(void) {
+static uint16_t rfm12_showstatus(void) {
 	uint8_t irqstate0 = rfm12_irqstatus();
 	uint16_t status = rfm12_status();
 	uint8_t irqstate1 = rfm12_irqstatus();
@@ -202,37 +237,23 @@ read by the status bit 0x800. So we can check if the RFM12 works.
 A low pin sets the status bit. Setting the pin to high, holds the status bit
 undil the next status read is performed.
 */
-void rfm12_fireint(void) {
+static void rfm12_fireint(void) {
 	PORTC.OUTCLR = (1<<RFM12_NINT);
 	_delay_us(100.0);
 	PORTC.OUTSET = (1<<RFM12_NINT);
 }
 
-ISR(PORTB_INT0_vect) {
-	uint8_t status = rfm12_status();
-	if (status & 0x8000) {
-		//we got some data!
-		uint16_t data = rfm12_command(0xB000);
-		if (rfm12_rxbufferidx < RFM12_DATABUFFERSIZE) {
-			rfm12_rxbuffer[rfm12_rxbufferidx] = (uint8_t)data;
-			rfm12_rxbufferidx++;
-		}
-	}
-}
-
-char rfm12_update(void) {
+void rfm12_update(void) {
 	DEBUG_FUNC_ENTER(rfm12_update);
-	char bufcop[RFM12_DATABUFFERSIZE];
+	uint8_t bufcop[RFM12_DATABUFFERSIZE];
 	uint8_t s, i;
 	if ((RFM12_TIMER_POWER & RFM12_TIMER_POWER_BIT) == 0) {
-		if (rfm12_rxbufferidx) {
-			//RFM12_TIMER.INTCTRLA &= ~TC_OVFINTLVL_LO_gc; //disable timer interrupt
-			cli();
-			memcpy(bufcop, (char*)rfm12_rxbuffer, rfm12_rxbufferidx);
-			s = rfm12_rxbufferidx;
-			rfm12_rxbufferidx = 0;
-			sei();
-			//RFM12_TIMER.INTCTRLA |= TC_OVFINTLVL_LO_gc; //enable timer interrupt
+		if (rfm12_rxdataidx) {
+			PMIC.CTRL &= ~PMIC_LOLVLEN_bm; //disable timer interrupt
+			memcpy(bufcop, (uint8_t*)rfm12_rxdata, rfm12_rxdataidx);
+			s = rfm12_rxdataidx;
+			rfm12_rxdataidx = 0;
+			PMIC.CTRL |= PMIC_LOLVLEN_bm; //enable timer interrupt
 			if (g_settings.debugRs232 == 6) {
 				rs232_sendstring_P(PSTR("RFM12 got: "));
 				for (i = 0; i < s; i++) {
@@ -245,26 +266,135 @@ char rfm12_update(void) {
 				}
 				rs232_sendstring_P(PSTR("\r\n"));
 			}
+			//put into key queue if password has been send
+			if (rfm12_passstate >= 3) {
+				uint8_t j = 0;
+				for (i = 0; i < RFM12_KEYQUEUESIZE; i++) {
+					if (g_state.rfm12keyqueue[i] == 0) {
+						g_state.rfm12keyqueue[i] = bufcop[j];
+						j++;
+					}
+					if (j >= s) {
+						break;
+					}
+				}
+			} else {
+				for (i = 0; i < s; i++) {
+					uint16_t expect = g_settings.rfm12passcode;
+					if (rfm12_passstate == 0) expect /= 100;
+					if (rfm12_passstate == 1) expect /= 10;
+					expect = (expect % 10) + '0';
+					if (bufcop[i] == expect) {
+						if (g_settings.debugRs232 == 6) {
+							rs232_sendstring_P(PSTR("RFM12 pass++\r\n"));
+						}
+						rfm12_passstate++;
+					} else {
+						rfm12_passstate = 0;
+					}
+				}
+			}
 		}
-		if (rfm12_ready()) {
-			rs232_putchar('r');
-		}
-		rfm12_showstatus();
-		//RFM12_TIMER.INTCTRLA &= ~TC_OVFINTLVL_LO_gc; //disable timer interrupt
-		rfm12_command(0xCA81); // restart syncword detection:
-		rfm12_command(0xCA83); // enable FIFO
-		//RFM12_TIMER.INTCTRLA |= TC_OVFINTLVL_LO_gc; //enable timer interrupt
 	}
 	DEBUG_FUNC_LEAVE(rfm12_update);
-	return 0;
 }
 
-
 ISR(RFM12_TIMER_INT) {
-	if ((rfm12_ready()) && (rfm12_rxbufferidx < RFM12_DATABUFFERSIZE)) {
-		rfm12_rxbuffer[rfm12_rxbufferidx] = rfm12_command(0xB000);
-		rfm12_rxbufferidx++;
+	DEBUG_FUNC_ENTER(rfm12_timer);
+	//if ((rfm12_irqstatus() && (rfm12_status() & 0x8000)) { //does not work, why?
+	if (rfm12_ready()) {
+		PMIC.CTRL &= ~PMIC_LOLVLEN_bm;
+		sei();
+		uint8_t localidx = rfm12_rxbufferidx;
+		uint8_t rfm12_rxtimeout = 4;
+		if (localidx < RFM12_DATABUFFERSIZE) {
+			rfm12_rxbuffer[localidx] = rfm12_command(0xB000);
+			if (!rfm12_skipnext) { //previous was not 0x0 or 0xFF
+				if ((rfm12_rxbuffer[localidx] == 0x0) || (rfm12_rxbuffer[localidx] == 0xFF)) {
+					rfm12_skipnext = 1;
+				} else {
+					rfm12_skipnext = 0;
+				}
+#if defined(RFM12_DEBUG)
+				if (rfm12_rxdataidx < (RFM12_DATABUFFERSIZE)) {
+					rfm12_rxdata[rfm12_rxdataidx++] = rfm12_rxbuffer[localidx];
+				}
+#endif
+				localidx++;
+				if (localidx > 2) { //we know the packet length
+					const uint8_t datalen = rfm12_rxbuffer[1];
+					uint8_t pkglen = 3;
+					if (datalen) {
+						pkglen += datalen + 1;
+					}
+					if (localidx == pkglen) { //packet should be complete (data bytes+ number + status + crc)
+						uint8_t i;
+						uint8_t crc = 0;
+						for (i = 0; i < pkglen - 1; i++) {
+							crc = _crc_ibutton_update(crc, rfm12_rxbuffer[i]);
+						}
+						if (rfm12_rxbuffer[pkglen - 1] == crc) {
+#ifndef RFM12_DEBUG
+							if (datalen > 0) {
+								if (rfm12_rxbuffer[2] != rfm12_lastrxid) {
+									for (i = 0; i < datalen; i++) {
+										if (rfm12_rxdataidx < RFM12_DATABUFFERSIZE) {
+											rfm12_rxdata[rfm12_rxdataidx] = rfm12_rxbuffer[3+i];
+											rfm12_rxdataidx++;
+										}
+									}
+									rfm12_lastrxid = rfm12_rxbuffer[2];
+								} else {
+									//rs232_putchar('v'); //wrong index. sender did not get our act?
+								}
+							} else {
+								rs232_putchar('w'); //no data. should be act package?
+							}
+#endif
+							//TODO: Handle incoming act here
+							//TODO: prepare ACT sending here
+						} else {
+#ifdef RFM12_DEBUG
+							rs232_putchar('x'); //wrong CRC
+							rs232_puthex(crc);
+#endif
+						}
+						rfm12_command(0xCA81); // restart syncword detection:
+						rfm12_command(0xCA83); // enable FIFO
+						localidx = 0;
+					}
+				}
+			} else {
+				rfm12_skipnext = 0;
+			}
+		} else {
+#ifdef RFM12_DEBUG
+			rs232_putchar('y');
+#endif
+			//buffer overflow... restart
+			rfm12_command(0xCA81); // restart syncword detection:
+			rfm12_command(0xCA83); // enable FIFO
+			localidx = 0;
+			rfm12_skipnext = 0;
+		}
+		if (rfm12_rxtimeout) {
+			rfm12_rxtimeout--;
+			if (rfm12_rxtimeout == 0) {
+#ifdef RFM12_DEBUG
+				rs232_putchar('z');
+#endif
+				rfm12_command(0xCA81); // restart syncword detection:
+				rfm12_command(0xCA83); // enable FIFO
+				localidx = 0;
+				rfm12_skipnext = 0;
+			}
+		}
+		rfm12_rxbufferidx = localidx;
+		//}
+		cli();
+		PMIC.CTRL |= PMIC_LOLVLEN_bm;
 	}
+	DEBUG_FUNC_LEAVE(rfm12_timer);
 }
 
 void rfm12_reset(void) {
@@ -310,6 +440,10 @@ void rfm12_init(void) {
 	DEBUG_FUNC_ENTER(rfm12_init);
 	rfm12_portinit();
 	rfm12_reset();
+	rfm12_rxbufferidx = 0;
+	rfm12_rxdataidx = 0;
+	rfm12_lastrxid = 255;
+	rfm12_passstate = 0;
 	uint8_t irqstate0 = rfm12_irqstatus();
 	if (!(rfm12_showstatus() & 0x4000) || (rfm12_showstatus() & 0x4000)) {
 		rs232_sendstring_P(PSTR("RFM12 not pesent\r\n"));
@@ -379,15 +513,9 @@ void rfm12_init(void) {
 	RFM12_TIMER.CTRLC = 0;
 	RFM12_TIMER.CTRLD = 0; //no capture
 	RFM12_TIMER.CTRLE = 0; //normal 16bit counter
-	RFM12_TIMER.PER = (F_CPU/3000);   //we use approx 20kBaud -> 2500 byte/s -> sample 3000 times to get everything
+	RFM12_TIMER.PER = (F_CPU/5000);   //we use approx 20kBaud -> 2500 byte/s -> sample 5000 times to get everything
 	RFM12_TIMER.CNT = 0x0;    //reset counter
 	RFM12_TIMER.INTCTRLA = TC_OVFINTLVL_LO_gc; // low prio interupt of overflow
-	//initialize interrupt control
-/*
-	PORTB.PIN1CTRL = PORT_OPC_TOTEM_gc | PORT_ISC_FALLING_gc;
-	PORTB.INTCTRL = 0x1; //low prio interrupt on int0
-	PORTB.INT0MASK = 0x2; //use pin1
-*/
 	if (g_settings.debugRs232 == 6) {
 		rs232_sendstring_P(PSTR("RFM12 init done\r\n"));
 	}

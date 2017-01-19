@@ -1,5 +1,5 @@
-/* Matrix-Simpleclock
-  (c) 2014-2016 by Malte Marwedel
+/* Matrix-Advancedclock
+  (c) 2014-2017 by Malte Marwedel
   www.marwedels.de/malte
 
   This program is free software; you can redistribute it and/or modify
@@ -579,15 +579,15 @@ static void update_rfm12control(void) {
 	}
 	if (modeshould != g_state.rfm12modeis) {
 		if (modeshould) {
+			if (g_settings.debugRs232 == 0x6) {
+				rs232_sendstring_P(PSTR("RFM12 enabling...\r\n"));
+			}
 			rfm12_init();
-			if (g_settings.debugRs232 == 0x6) {
-				rs232_sendstring_P(PSTR("RFM12 enabled\r\n"));
-			}
 		} else {
-			rfm12_standby();
 			if (g_settings.debugRs232 == 0x6) {
-				rs232_sendstring_P(PSTR("RFM12 standby\r\n"));
+				rs232_sendstring_P(PSTR("RFM12 enter standby...\r\n"));
 			}
+			rfm12_standby();
 		}
 		g_state.rfm12modeis = modeshould;
 	}
@@ -606,8 +606,11 @@ static void rfm12keypress(void) {
 static void run8xS(void) {
 	DEBUG_FUNC_ENTER(run8xS);
 	//check for RS232 input
-	if (g_settings.debugRs232 >= 2) {
+	if ((g_settings.debugRs232 >= 2) || (g_state.rfm12modeis)) {
 		char c = rs232_getchar();
+		if (c == 0) {
+			c = rfm12_getchar();
+		}
 		if (c == 'w') {
 			menu_keypress(3);
 		}
@@ -682,8 +685,8 @@ static void run8xS(void) {
 				g_state.irKeyCd = 4;
 			}
 		}
-		g_state.irKeyLast = irKey;
 	}
+	g_state.irKeyLast = irKey;
 	if (g_state.irKeyCd) {
 		g_state.irKeyCd--;
 	}
@@ -694,8 +697,9 @@ static void run8xS(void) {
 static void run4xS(void) {
 	DEBUG_FUNC_ENTER(run4xS);
 	if (g_dispUpdate) {
-		g_dispUpdate();
-		menu_redraw();
+		if (g_dispUpdate()) {
+			menu_redraw();
+		}
 	}
 	//update logger reports
 	logger_print_iter();
@@ -846,7 +850,7 @@ int main(void) {
 	power_setup();
 	disp_rtc_setup();
 	g_settings.debugRs232 = 1; //gets overwritten by config_load() anyway
-	rs232_sendstring_P(PSTR("Advanced-Clock V0.1\r\n"));
+	rs232_sendstring_P(PSTR("Advanced-Clock V0.2\r\n"));
 	config_load();
 	g_state.batteryCharged = g_settings.batteryCapacity;
 	g_state.batteryCharged *= (60*60);//mAh -> mAs

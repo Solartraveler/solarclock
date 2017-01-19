@@ -117,15 +117,22 @@
   <window number="40" comment="MC - Show seconds" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="Second" number="1" multilang="0" storagemethod="0"/>
     <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
-    <shortcut action="" number="3" screen="window 41" shortcutkey="2"/>
+    <shortcut action="" number="3" screen="window 106" shortcutkey="2"/>
     <shortcut action="" number="4" screen="window 39" shortcutkey="3"/>
     <shortcut action="" number="5" screen="window 46" shortcutkey="4"/>
+  </window>
+  <window number="106" comment="MC - Summer time adjust" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Summer" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 41" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 40" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 107" shortcutkey="4"/>
   </window>
   <window number="41" comment="MC - Sound auto off" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="Snd Off" number="1" multilang="0" storagemethod="0"/>
     <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
     <shortcut action="" number="3" screen="window 42" shortcutkey="2"/>
-    <shortcut action="" number="4" screen="window 40" shortcutkey="3"/>
+    <shortcut action="" number="4" screen="window 106" shortcutkey="3"/>
     <shortcut action="" number="5" screen="window 47" shortcutkey="4"/>
   </window>
   <window number="42" comment="MC - Sound volume" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
@@ -150,17 +157,24 @@
     <shortcut action="" number="5" screen="window 50" shortcutkey="4"/>
   </window>
   <window number="80" comment="MC - RFM12 enabled" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
-    <label Xpos="0" Ypos="0" font="14" text="RFM12 " number="1" multilang="0" storagemethod="0"/>
+    <label Xpos="0" Ypos="0" font="14" text="RFM en" number="1" multilang="0" storagemethod="0"/>
     <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
-    <shortcut action="" number="3" screen="window 81" shortcutkey="2"/>
+    <shortcut action="" number="3" screen="window 105" shortcutkey="2"/>
     <shortcut action="" number="4" screen="window 44" shortcutkey="3"/>
     <shortcut action="" number="5" screen="window 87" shortcutkey="4"/>
+  </window>
+  <window number="105" comment="MC - RFM12 passkey" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="RFM key" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 81" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 80" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 104" shortcutkey="4"/>
   </window>
   <window number="81" comment="MC - RC-5 enabled" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="RC-5" number="1" multilang="0" storagemethod="0"/>
     <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
     <shortcut action="" number="3" screen="window 83" shortcutkey="2"/>
-    <shortcut action="" number="4" screen="window 80" shortcutkey="3"/>
+    <shortcut action="" number="4" screen="window 105" shortcutkey="3"/>
     <shortcut action="" number="5" screen="window 88" shortcutkey="4"/>
   </window>
   <window number="83" comment="MC - Power save start time" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
@@ -203,6 +217,12 @@
     <shortcut action="ClockShowSecOff" number="3" screen="" shortcutkey="2"/>
     <shortcut action="ClockShowSecOn" number="4" screen="" shortcutkey="3"/>
   </window>
+  <window number="107" comment="C - Summer time adjust" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="15" text="Summertime" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 106" shortcutkey="1"/>
+    <shortcut action="SummertimeAuto" number="3" screen="" shortcutkey="3"/>
+    <shortcut action="SummertimeOff" number="4" screen="" shortcutkey="2"/>
+  </window>
   <window number="47" comment="C - Sound auto off" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="SoundAutoOffTime" number="1" multilang="0" storagemethod="1"/>
     <shortcut action="" number="2" screen="window 41" shortcutkey="1"/>
@@ -232,6 +252,13 @@
     <shortcut action="" number="2" screen="window 80" shortcutkey="1"/>
     <shortcut action="Rfm12Dec" number="3" screen="" shortcutkey="2"/>
     <shortcut action="Rfm12Inc" number="4" screen="" shortcutkey="3"/>
+  </window>
+  <window number="104" comment="C - RFM12 passkey" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Rfm12passkey" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 105" shortcutkey="1"/>
+    <shortcut action="Rfm12passkey100" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="Rfm12passkey10" number="4" screen="" shortcutkey="3"/>
+    <shortcut number="5" shortcutkey="4" action="Rfm12passkey1" screen=""/>
   </window>
   <window number="88" comment="C - RC-5 enabled" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="Rc5enabled" number="1" multilang="0" storagemethod="1"/>
