@@ -45,6 +45,12 @@ uint16_t dayofyear(uint8_t day, uint8_t month, uint16_t year) {
 	return 0;
 }
 
+/*
+returns the month and day from the day in year and the year.
+month is in the range 0...11
+day is in the range 0...30
+So to show something proper, add +1 later.
+*/
 void monthdayfromdayinyear(uint16_t dayinyear, uint16_t year, uint8_t * month, uint8_t * day) {
 	uint8_t leapyear = isleapyear(year);
 	uint8_t i;

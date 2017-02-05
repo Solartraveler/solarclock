@@ -37,13 +37,8 @@ http://www.mikrocontroller.net/topic/71682?goto=3896183
 
 
 https://lowpowerlab.com/forum/index.php?topic=115.0
-Write PA OFF (8208)
-Write Osc OFF (8200)
-
-0x8208 does not put it in the low power mode and neither does 0x8200
-I used 0x8201 and now it sleeps and draws only about 10uA
-
-
+The observation fits with my own one: 0x8201 sets it to low power mode.
+I used 0x8201 and now it sleeps and draws only about 10µA
 */
 
 #include <avr/io.h>
@@ -52,6 +47,8 @@ I used 0x8201 and now it sleeps and draws only about 10uA
 #include <stdlib.h>
 
 #include "main.h"
+#include <util/delay.h>
+
 #include "rs232.h"
 #include "config.h"
 
@@ -62,12 +59,14 @@ I used 0x8201 and now it sleeps and draws only about 10uA
 #define RFM12_CLK 7
 #define RFM12_RESET 5
 
+#if 0
+//uses hardware (not working)
 uint16_t rfm12_command(uint16_t data) {
 	uint16_t indata;
 	PR_PRPC &= ~PR_SPI_bm;
 	PORTC.OUTCLR = (1<<RFM12_SELECT);
-	//SPIC.CTRL = SPI_ENABLE_bm | SPI_MASTER_bm | SPI_MODE_0_gc | SPI_PRESCALER_DIV4_gc;
-	SPIC.CTRL = SPI_ENABLE_bm | SPI_MASTER_bm | SPI_MODE_0_gc | SPI_PRESCALER_DIV64_gc;
+	PORTC.PIN6CTRL = PORT_OPC_TOTEM_gc; //now the RFM12 drives the pin
+	SPIC.CTRL = SPI_ENABLE_bm | SPI_MASTER_bm | SPI_MODE_0_gc | SPI_PRESCALER_DIV4_gc;
 	SPIC.INTCTRL = SPI_INTLVL_OFF_gc;
 	//Reading status + reading data = clear status bits
 	SPIC.STATUS;
@@ -80,9 +79,48 @@ uint16_t rfm12_command(uint16_t data) {
 	while (!SPIC.STATUS); //wait for shift of second byte
 	indata |= SPIC.DATA;
 	PORTC.OUTSET = (1<<RFM12_SELECT);
-	PR_PRPC |= PR_SPI_bm;
+	PORTC.PIN6CTRL = PORT_OPC_PULLUP_gc; //RFM12 is high impedance again
+	//PR_PRPC |= PR_SPI_bm;
 	return indata;
 }
+#else
+//use software (working)
+uint16_t rfm12_command(uint16_t outdata) {
+	uint16_t indata = 0;
+	PORTC.OUTCLR = (1<<RFM12_CLK);
+	PORTC.OUTCLR = (1<<RFM12_SELECT);
+	PORTC.PIN6CTRL = PORT_OPC_TOTEM_gc; //now the RFM12 drives the pin
+	//shift out and get data
+	uint8_t i;
+	/* The RFM12 samples the pin on the rising clock edge and changes the
+	   Pin on the falling clock edge. The first bit is there before any clock.
+	*/
+	for (i = 0; i < 16; i++) {
+		indata <<= 1;
+		//write data
+		if (outdata & 0x8000) {
+			PORTC.OUTSET = (1<<RFM12_MOSI);
+		} else {
+			PORTC.OUTCLR = (1<<RFM12_MOSI);
+		}
+		_delay_us(1.0);
+		//rise clock
+		PORTC.OUTSET = (1<<RFM12_CLK);
+		//read data
+		if (PORTC.IN & (1<<RFM12_MISO)) {
+			indata |= 1;
+		}
+		_delay_us(1.0);
+		//clock to low
+		PORTC.OUTCLR = (1<<RFM12_CLK);
+		outdata <<= 1;
+	}
+	_delay_us(1.0); //give some time to the RFM12 for sampling
+	PORTC.OUTSET = (1<<RFM12_SELECT);
+	PORTC.PIN6CTRL = PORT_OPC_PULLUP_gc; //RFM12 pin is high impedance again
+	return indata;
+}
+#endif
 
 uint16_t rfm12_status(void) {
 	return rfm12_command(0x0); //status read
@@ -132,56 +170,3 @@ void rfm12_standby(void) {
 	PR_PRPC |= PR_SPI_bm;
 }
 
-void rfm12_fireint(void) {
-	PORTC.OUTCLR = (1<<RFM12_NINT);
-	waitms(1);
-	PORTC.OUTSET = (1<<RFM12_NINT);
-}
-
-#if 0
-void rfm12_init(void) {
-	rfm12_portinit();
-	rfm12_reset();
-
-	rfm12_showstatus();
-	rfm12_showstatus();
-	//Low battery detector and microcontroller clock divier command
-	rfm12_command(0xC000); //low bat and MCU clock divider command: same as init value
-	rfm12_showstatus();
-	//configuration setting command: 12pF, 433MHz, enable data register, enable fifo
-	rfm12_command(0x80D7);
-	rfm12_showstatus();
-	//data filter command: clock recovery auto lock control, slow mode, digital filter, data good level = 3
-	rfm12_command(0xC2AB);
-	rfm12_showstatus();
-	//fifo and reset mode command: 8 bit rx = isr, synchron pattern, no fifo enable after syncron pattern, no high sensitive reset
-	rfm12_command(0xCA81); //Set FIFO mode
-	rfm12_showstatus();
-	//wake-up timer command: disable wakeup
-	rfm12_command(0xE000);
-	rfm12_showstatus();
-	//low duty-cycle command: disable low duty
-	//rfm12_command(0xC800); //disable low duty cycle (once set, we dont get into low power again)
-	//afc command: Keep the foffset value independently from the state of he VDI signal, -10kHz to +7.5Khz range limit, no strome edge, high accuracy mode, enable frequency offset register, enable calculation of the offeset frequency
-	rfm12_command(0xC4F7); //AFC settings: autotuning: -10kHz...+7,5kHz
-	rfm12_showstatus();
-	//----set channel. with benedict code, default: 1----
-	rfm12_command(0xA000 | 1361); //frequency setting command, 433.4025MHz
-	rfm12_showstatus();
-	rfm12_command(0x9800 | (4<<4)); //tx configuration power command: power = 0dB,  mod = 4 -> (4+1)*15kHz = 75kHz frequency shift
-	rfm12_showstatus();
-	rfm12_command(0x9400 | (5<<5)); //receiver control command: VDI output, fast valid identificator, bandwith=5->134kHz, gain= 0db, drssi=0->-103dBm threshold
-	rfm12_showstatus();
-	//----set baudrate of RFM12: default with benedict code: 20000----
-	rfm12_command(0xC600 | 16); //data rate command: 16 results in ~21552b/s
-	rfm12_showstatus();
-	//---set to RX mode---
-	rfm12_command(0x82C9); //enable receiver chain + receiver baseband + crystal oscillator + no crystal output
-	rfm12_showstatus();
-	rfm12_command(0xCA81); //Set FIFO mode (again? why?)
-	rfm12_showstatus();
-	waitms(1);
-	rfm12_command(0xCA83); //and now with fifo enable after sync pattern. why not previous?
-	rfm12_showstatus();
-}
-#endif

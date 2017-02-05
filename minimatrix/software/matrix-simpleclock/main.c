@@ -515,8 +515,8 @@ static void run8xS(void) {
 				g_state.irKeyCd = 4;
 			}
 		}
-		g_state.irKeyLast = irKey;
 	}
+	g_state.irKeyLast = irKey;
 	if (g_state.irKeyCd) {
 		g_state.irKeyCd--;
 	}
@@ -644,7 +644,7 @@ int main(void) {
 	power_setup();
 	disp_rtc_setup();
 	g_settings.debugRs232 = 1; //gets overwritten by config_load() anyway
-	rs232_sendstring_P(PSTR("Simple-Clock V1.01\r\n"));
+	rs232_sendstring_P(PSTR("Simple-Clock V1.02\r\n"));
 	config_load();
 	g_state.batteryCharged = g_settings.batteryCapacity;
 	g_state.batteryCharged *= (60*60);//mAh -> mAs

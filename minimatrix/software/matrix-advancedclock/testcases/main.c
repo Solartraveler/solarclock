@@ -7,6 +7,7 @@
 #include "testcharger.h"
 #include "testdcf77decoder.h"
 #include "testtimeconvert.h"
+#include "testrfm12.h"
 
 settings_t g_settings;
 sysstate_t g_state;
@@ -22,6 +23,7 @@ int main(void) {
 	errors += testcharger();
 	errors += testdcf77decoder();
 	errors += testtimeconvert();
+	errors += testrfm12();
 	if (errors) {
 		printf("Errors: %i\n", errors);
 		return 1;

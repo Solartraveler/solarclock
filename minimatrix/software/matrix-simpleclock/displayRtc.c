@@ -39,9 +39,14 @@
 #define DISP_REFRESH_RATE 100
 
 //limit where the comparator would only be incresed by 5 or less (F_CPU/F_RTC*6) = Minimum
-#define DISP_WITHIN_INT_LIMIT ((F_CPU*7/F_RTC)+1)
+//constant evaluates to 428:
+//#define DISP_WITHIN_INT_LIMIT ((F_CPU*7/F_RTC)+1)
+//constant evaluates to 366:
+#define DISP_WITHIN_INT_LIMIT (F_CPU*6/F_RTC)
 
-#define SYNC_IN_INT
+
+//Did not help agains flicker by loosing interrupts...
+//#define SYNC_IN_INT
 
 uint8_t disp_backbuffer[DISP_TOTAL_BYTES];
 volatile uint8_t disp_buffer[DISP_TOTAL_BYTES];
@@ -75,6 +80,19 @@ uint8_t const disp_linebits[7] = {0, (1<<4), (1<<5), (1<<6), (1<<7), (1<<6), 0};
                    then set the next interrupt to the time of a single line
                    being dark. -> 5 interrupts per refresh
    LEDs off:       The compare interrupt is disabled, no wakeup
+
+The whole interrupt handler can take up to
+~594 clock cycles (including 428 wait cycles) excluding sync cycles (SYNC_IN_INT)
+-> 166...200 cycles expected minimum.
+sync might take thee clock crystal cycles -> + 183 cycles -> 777 cycles
+->0.39ms
+
+Trying to reduce this, as the sync cycles did not fix the random flicker problem:
+594-428+366 = 532cycles -> 0.266ms
+
+We need a value of less than ~0.3ms otherwise RFM12 communication wont
+keep its timing @ 10kBaud.
+
 */
 static void disp_update_line(void) {
 	uint8_t disp_row_l = disp_row;

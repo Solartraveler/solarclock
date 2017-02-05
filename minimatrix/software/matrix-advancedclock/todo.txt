@@ -3,7 +3,7 @@ Display flicker -> still no idea
 Power save mode selectable         -> Done
 Power save mode for specific times -> Done
 RC-5 Receiver                      -> Done
-RFM12 RX/TX                        -> RX working.
+RFM12 RX/TX                        -> RX working. TX working. Too many crc errors. Needs better integration into logger sending data.
 Advanced timer                     -> Done
 Pin Selftest                       -> Done
 Logger                             -> Done

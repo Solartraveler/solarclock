@@ -13,5 +13,13 @@ uint16_t rfm12_command(uint16_t data);
 
 void rfm12_showstatus(void);
 
+//dummy functions defined and used in the advanced version:
+inline uint8_t rfm12_replicateready(void) {
+	return 0;
+}
+
+#define rfm12_send(X, Y)
+#define rfm12_sendP(X, Y)
+
 #endif
 

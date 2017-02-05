@@ -42,7 +42,7 @@ Its not containing all planned features of the clock, but is complete enough to 
 
   * Show seconds/hide seconds
 
-  * Manual charger control
+  * Manual charger control (on/off/automatic)
 
   * Set mAh of battery
 
@@ -58,13 +58,11 @@ Its not containing all planned features of the clock, but is complete enough to 
 
   * Set current consumption for used LEDs
 
-  * Set time until alarm goes off anyway
+  * Set time until alarm a beeping alarm goes silent without user interaction
 
   * Select which type debug messages should be printed on the RS232 interface
 
-  * Set charger between on/off/automatic
-
-  * Selects if clock should switch display completely off when dark
+  * Selects if clock should switch display completely off when dark or stay always at at least minimal brightness
 
 - Showing many informations:
 
@@ -92,6 +90,8 @@ Its not containing all planned features of the clock, but is complete enough to 
 
 ## The advanced version
 
+The advanced version contains all features of the simple version.
+
 Unlike the simple clock version, the advanced version contains source code from third parties:
 
 The RC-5 decoder software is from Peter Dannegger.
@@ -109,7 +109,7 @@ The two wire interface library is from Atmel Corporation.
 
 - RC5 remote control receiver
 
-- More alarms (repeating, non repeating, only some days of the week...)
+- Second alarm with repeating, non repeating, only some days of the week, settings
 
 - Power down on certain times of the day, saving power
 

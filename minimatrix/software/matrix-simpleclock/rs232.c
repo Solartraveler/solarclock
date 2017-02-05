@@ -1,5 +1,5 @@
 /* Matrix-Simpleclock
-  (c) 2014-2016 by Malte Marwedel
+  (c) 2014-2017 by Malte Marwedel
   www.marwedels.de/malte
 
   This program is free software; you can redistribute it and/or modify
@@ -25,17 +25,26 @@
 
 #include "rs232.h"
 #include "config.h"
+#include "rfm12.h"
+
+#define RS232_TXBUFFERSIZE 64
 
 volatile uint8_t g_rs232starttransmit = 0;
-volatile char g_rs232nextchar = 0;
+volatile char g_rs232buffer[RS232_TXBUFFERSIZE];
+volatile char g_rs232bufferwp; //points to the next memory field to be written
+volatile char g_rs232bufferrp;//points to the memory field to be read next
 volatile uint8_t g_rs232userx = 0;
 
 
 ISR(RS232_ISR_VECT) {
-	char nextchar = g_rs232nextchar;
-	if (nextchar) {
-		g_rs232nextchar = 0;
-		USART.DATA = nextchar;
+	if (g_rs232bufferwp != g_rs232bufferrp) {
+		uint8_t bufferrp = g_rs232bufferrp;
+		USART.DATA = g_rs232buffer[bufferrp];
+		bufferrp++;
+		if (bufferrp >= RS232_TXBUFFERSIZE) {
+			bufferrp = 0;
+		}
+		g_rs232bufferrp = bufferrp;
 	} else {
 		if ((g_rs232starttransmit == 0) && (g_rs232userx == 0)) {
 			RS232_PORT.RS232_TX_PIN = PORT_ISC0_bm | PORT_ISC1_bm | PORT_ISC2_bm | PORT_OPC_PULLUP_gc;
@@ -46,9 +55,11 @@ ISR(RS232_ISR_VECT) {
 }
 
 void rs232_tx_init(void) {
-	_delay_loop_2(F_CPU/BAUDRATE*30/4); //wait 30 bits to finish current transmit (1 in shift register, 1 in data register, one in softare wait variable)
+	if (!(PWRSAVEREG & PWRSAVEBIT)) {
+		return; //if not powered down, no need to re-initalize
+	}
 	PWRSAVEREG &= ~PWRSAVEBIT;
-	USART.CTRLA = USART_TXCINTLVL_LO_gc;
+	USART.CTRLA = USART_TXCINTLVL_MED_gc;
 	USART.CTRLC = USART_CHSIZE0_bm | USART_CHSIZE1_bm | USART_SBMODE_bm; //8bit 2stop
 #if (BAUDRATE <= 9600)
 	USART.BAUDCTRLA = (uint8_t)(F_CPU/(16*(uint32_t)BAUDRATE) - 1);
@@ -93,16 +104,22 @@ void rs232_disable(void) {
 }
 
 void rs232_putchar(char ch) {
-	g_rs232starttransmit = 1;
+	uint8_t wp = g_rs232bufferwp;
+	uint8_t wpnext = wp + 1;
+	g_rs232starttransmit = 1; //prevents the transmitter from powering down itself
 	if (PWRSAVEREG & PWRSAVEBIT) {
 		rs232_tx_init();
 	}
-	while (g_rs232nextchar);
+	if (wpnext >= RS232_TXBUFFERSIZE) {
+		wpnext = 0;
+	}
+	while (wpnext == g_rs232bufferrp); //wait for room in buffer
 	cli();
-	if (USART.STATUS & USART_DREIF_bm) {
+	if ((USART.STATUS & USART_DREIF_bm) && (wp == g_rs232bufferrp)) {
 		USART.DATA = ch;
 	} else {
-		g_rs232nextchar = ch;
+		g_rs232buffer[wp] = ch;
+		g_rs232bufferwp = wpnext;
 	}
 	g_rs232starttransmit = 0;
 	sei();
@@ -116,33 +133,44 @@ char rs232_getchar(void) {
 	}
 }
 
-static void rs232puthex0(uint8_t value) {
+static uint8_t rs232_makehex(uint8_t value) {
 	if (value >= 10) {
 		value += 'A' - 10;
 	} else {
 		value += '0';
 	}
-	rs232_putchar(value);
-}
-
-void rs232_puthex(uint8_t value) {
-	rs232puthex0(value >> 4);
-	rs232puthex0(value & 0xF);
+	return value;
 }
 
 void rs232_sendstring(char * string) {
-	while (*string) {
-		rs232_putchar(*string);
-		string++;
+	const char * index = string;
+	while (*index) {
+		rs232_putchar(*index);
+		index++;
 	}
+	if (rfm12_replicateready()) {
+		rfm12_send(string, index - string);
+	}
+}
+
+void rs232_puthex(uint8_t value) {
+	char buffer[3];
+	buffer[0] = rs232_makehex(value >> 4);
+	buffer[1] = rs232_makehex(value >> 4);
+	buffer[2] = '\0';
+	rs232_sendstring(buffer);
 }
 
 void rs232_sendstring_P(const char * string) {
 	char c;
+	const char * index = string;
 	if (g_settings.debugRs232) {
-		while ((c = pgm_read_byte(string))) {
+		while ((c = pgm_read_byte(index))) {
 			rs232_putchar(c);
-			string++;
+			index++;
+		}
+		if (rfm12_replicateready()) {
+			rfm12_sendP(string, index - string);
 		}
 	}
 }

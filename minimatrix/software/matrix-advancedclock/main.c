@@ -579,14 +579,10 @@ static void update_rfm12control(void) {
 	}
 	if (modeshould != g_state.rfm12modeis) {
 		if (modeshould) {
-			if (g_settings.debugRs232 == 0x6) {
-				rs232_sendstring_P(PSTR("RFM12 enabling...\r\n"));
-			}
+			rs232_sendstring_P(PSTR("RFM12 enabling...\r\n"));
 			rfm12_init();
 		} else {
-			if (g_settings.debugRs232 == 0x6) {
-				rs232_sendstring_P(PSTR("RFM12 enter standby...\r\n"));
-			}
+			rs232_sendstring_P(PSTR("RFM12 enter standby...\r\n"));
 			rfm12_standby();
 		}
 		g_state.rfm12modeis = modeshould;
@@ -599,6 +595,20 @@ static void rfm12keypress(void) {
 		g_state.rfm12Cd = 60; //60seconds on
 	} else if (g_settings.rfm12mode == 2) {
 		g_state.rfm12Cd = 60*5; //5min on
+	}
+}
+
+static void increaseRfmTimeout(void) {
+	/*When sending the log data, this might take some time, so do not
+	  switch off the rfm12 while sending.
+	  64k/23Byte -> 2850messages to send -> 3 per second -> up to 15min for all
+	  messages. The observed transmission rate is 4 per second. So enough reserve.
+	  This still might be too little in the case of a very high retransmission
+	  rate due to bad connection. But in this case... make connection better or
+	  set rfm12 to permanently on, or press some buttons to increase timeout.
+	*/
+	if ((g_state.rfm12modeis) && (g_state.rfm12Cd < 60*15)) {
+		g_state.rfm12Cd = 60*15;
 	}
 }
 
@@ -624,10 +634,19 @@ static void run8xS(void) {
 			menu_keypress(4);
 		}
 		if (c == 'l') {
+			increaseRfmTimeout();
 			logger_print(0);
 		}
 		if (c == 'L') {
+			increaseRfmTimeout();
 			logger_print(1);
+		}
+		if (c == 'm') {
+			rfm12_showstats();
+		}
+		if (c == 'h') {
+			const char * buffer = PSTR("Hello world\n\r");
+			rfm12_sendP(buffer, strlen_P(buffer));
 		}
 		if (c > 0) {
 			g_state.displayNoOffCd = 60;

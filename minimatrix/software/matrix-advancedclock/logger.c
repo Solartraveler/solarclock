@@ -277,6 +277,8 @@ static void logger_print_entry(uint16_t entryidx) {
 		uint8_t month, day;
 		monthdayfromdayinyear(dofy, year, &month, &day);
 		year += 2000;
+		month++;
+		day++;
 		snprintf_P(buffer, DEBUG_CHARS, PSTR(" %7lu %04u-%02u-%02u %2u:%02u:%02u "), (unsigned long)entry.id, year, month, day, h, m, s);
 		rs232_sendstring(buffer);
 		if (entry.messagetype == LOG_MESSAGE_DCFSYNC) {
