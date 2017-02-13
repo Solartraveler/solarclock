@@ -147,22 +147,24 @@ RFM12 (not RFM12B) would need pullups on FSK DATA nFFS (not used here)
 #define RFM12_DATABUFFERSIZE 64
 
 
+#define RFM12_MAXBADCONNECT 20
+
 
 //#define RFM12_DEBUG
 
 //these variables are only used within the interrupt routine, so no volatile
 //for non interrupt code writeback-always, read always code required
-uint8_t rfm12_rxbuffer[RFM12_DATABUFFERSIZE];
-uint8_t rfm12_rxbufferidx;
-uint8_t rfm12_txbuffer[RFM12_DATABUFFERSIZE];
-uint8_t rfm12_txbufferidx;
-uint8_t rfm12_txbufferlen;
+uint8_t rfm12_rxbuffer[RFM12_DATABUFFERSIZE]; //the packet currently in reception
+uint8_t rfm12_rxbufferidx; //current byte of the packet to be received
+uint8_t rfm12_txbuffer[RFM12_DATABUFFERSIZE]; //the packet to be send (including preamble, excluding stuff bytes)
+uint8_t rfm12_txbufferidx; //byte of the rfm12_txbuffer to be send
+uint8_t rfm12_txbufferlen; //length of the packet in the rfm12_txbuffer
 uint8_t rfm12_waitcycles; //used for timing control and timeout
-uint8_t rfm12_skipnext;
-uint8_t rfm12_lastrxid;
-uint8_t rfm12_lasttxid;
-uint8_t rfm12_mode;
-uint8_t rfm12_actreq;
+uint8_t rfm12_skipnext; //0 or 1. If 1, the next byte will be a stuff byte in stream
+uint8_t rfm12_lastrxid; //Data packet id. Used for detection of duplicated packets
+uint8_t rfm12_lasttxid; //Data packet id. Used for detection of duplicated packets
+uint8_t rfm12_mode; //Se state machine modes above
+uint8_t rfm12_actreq; //if 1, the other side wants an act packet from us
 uint8_t rfm12_actgot; //if 1, our last data package has been received successfully
 uint8_t rfm12_retriesleft; //counts down the nuber of times the package is tried to be resend
 //uint32_t fits to the unsigned long on the avr architecture and the unsigned int on the amd64 architecture as call for rand_r
@@ -173,21 +175,23 @@ volatile uint8_t rfm12_rxdata[RFM12_DATABUFFERSIZE];
 volatile uint8_t rfm12_rxdataidx;
 
 //send buffer (used as FIFO, get data from print function, forward to interrupt)
-volatile uint8_t rfm12_txdata[RFM12_DATABUFFERSIZE];
-volatile uint8_t rfm12_txdataidxwp; //write from print
+volatile uint8_t rfm12_txdata[RFM12_TXDATABUFFERSIZE];
+volatile uint8_t rfm12_txdataidxwp; //write from print. If equal to rp, the buffer is empty
 volatile uint8_t rfm12_txdataidxrp; //read from interrupt
 
 volatile uint16_t rfm12_timeoutstatus; //rfm12 status bits in the case of a timeout, for debug only
+volatile uint8_t rfm12_badconnect; //increments with every packet thrown away, resets with a valid reception
 
 //some statistics
 uint32_t rfm12_txpackets; //only counts packets with data. Simple act packages are not counted
-uint32_t rfm12_txretries;
-uint32_t rfm12_crcerrors; //rx
-uint32_t rfm12_txaborts;
+uint32_t rfm12_txacts; //simple act packets without data.
+uint32_t rfm12_txretries; //number of times a data packet has been send again
+uint32_t rfm12_txaborts; //number of times a data packet has been thrown out without getting an act
+uint32_t rfm12_crcerrors; //crc errors when getting a packet
+uint32_t rfm12_duppacket; //got packet with same id
 
 //internal state variable
-uint8_t rfm12_passstate; //if 3, commands are accepted
-
+uint8_t rfm12_passstate; //if 3, commands are accepted and data sent
 
 
 #ifndef UNIT_TEST
@@ -323,15 +327,34 @@ void rfm12_standby(void) {
 
 
 void rfm12_showstats(void) {
-	//print the stats (last message over rfm12 itself (dont care about atomic read here, its just for the stats)
-	if (rfm12_txpackets | rfm12_txretries | rfm12_crcerrors | rfm12_txaborts) {
-		char buffer[DEBUG_CHARS+1];
-		buffer[DEBUG_CHARS] = '\0';
-		//casting is only done to satisfy x86 and amd64.
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("RFM12 tx:%lu retr:%lu, abort:%lu, crcerr: %lu\r\n"),
-		 (long unsigned int)rfm12_txpackets, (long unsigned int)rfm12_txretries, (long unsigned int)rfm12_txaborts, (long unsigned int)rfm12_crcerrors);
-		rs232_sendstring(buffer);
+	cli();
+	uint32_t txpackets = rfm12_txpackets;
+	uint32_t txacts = rfm12_txacts;
+	uint32_t txretries = rfm12_txretries;
+	uint32_t txaborts = rfm12_txaborts;
+	uint32_t crcerrors = rfm12_crcerrors;
+	uint32_t duppacket = rfm12_duppacket;
+	_MemoryBarrier(); //as the interrupt variables are not volatile
+	sei();
+	char buffer[DEBUG_CHARS+1];
+	buffer[DEBUG_CHARS] = '\0';
+	//casting is only done to satisfy x86 and amd64.
+	snprintf_P(buffer, DEBUG_CHARS, PSTR("RFM12 txdata:%lu txact:%lu retr:%lu, abort:%lu, crcerr:%lu dup:%lu\r\n"),
+	 (long unsigned int)txpackets,(long unsigned int)txacts, (long unsigned int)txretries,
+	 (long unsigned int)txaborts, (long unsigned int)crcerrors, (long unsigned int)duppacket);
+	rs232_sendstring(buffer);
+}
+
+uint16_t rfm12_txbufferfree(void) {
+#if RFM12_TXDATABUFFERSIZE < 256
+	uint8_t delta = rfm12_txdataidxwp - rfm12_txdataidxrp;
+	if (rfm12_txdataidxwp < rfm12_txdataidxrp) {
+		delta = RFM12_TXDATABUFFERSIZE - (rfm12_txdataidxrp - rfm12_txdataidxwp);
 	}
+#else
+	uint8_t delta = rfm12_txdataidxwp - rfm12_txdataidxrp;
+#endif
+	return RFM12_TXDATABUFFERSIZE - delta;
 }
 
 void rfm12_update(void) {
@@ -378,6 +401,12 @@ void rfm12_update(void) {
 						break;
 					}
 				}
+				for (i = 0; i < s; i++) {
+					if (isdigit(bufcop[i])) {
+						rfm12_passstate = 0; //any number stops the interface
+						rs232_sendstring_P(PSTR("RFM12 access disabled\r\n"));
+					}
+				}
 			} else {
 				for (i = 0; i < s; i++) {
 					uint16_t expect = g_settings.rfm12passcode;
@@ -389,6 +418,9 @@ void rfm12_update(void) {
 							rs232_sendstring_P(PSTR("RFM12 pass++\r\n"));
 						}
 						rfm12_passstate++;
+						if (rfm12_passstate == 3) {
+							rs232_sendstring_P(PSTR("RFM12 access enabled\r\n"));
+						}
 					} else {
 						rfm12_passstate = 0;
 					}
@@ -410,14 +442,19 @@ uint8_t rfm12_sendMulti(const char * buffer, uint8_t size, uint8_t pgmspace) {
 		timeout.
 	*/
 	uint8_t timeout = (rtc_8thcounter + 2) % 8;
+	if (rfm12_badconnect >= RFM12_MAXBADCONNECT) {
+		rfm12_passstate = 0; //this prevents from endlessly (re)sending packets over and over without reception
+	}
 	if (rfm12_passstate < 3) {
 		return 0;
 	}
 	for (i = 0; i < size; i++) {
 		txnext = tx + 1;
-		if (txnext >= RFM12_DATABUFFERSIZE) {
+#if RFM12_TXDATABUFFERSIZE < 256
+		if (txnext >= RFM12_TXDATABUFFERSIZE) {
 			txnext = 0;
 		}
+#endif
 		while (txnext == rfm12_txdataidxrp) {
 			//wait until buffer is free again or timeout occurred
 			if (rtc_8thcounter == timeout) {
@@ -504,7 +541,12 @@ OPTIMIZER uint8_t rfm12_assemblePackage(void) {
 			uint8_t i;
 			for (i = 8; i < RFM12_DATABUFFERSIZE - 2; i++) {
 				rfm12_txbuffer[i] = rfm12_txdata[rfm12_txdataidxrp];
-				rfm12_txdataidxrp = (rfm12_txdataidxrp + 1) % RFM12_DATABUFFERSIZE;
+				rfm12_txdataidxrp = (rfm12_txdataidxrp + 1);
+#if RFM12_TXDATABUFFERSIZE < 256
+				if (rfm12_txdataidxrp >= RFM12_TXDATABUFFERSIZE) {
+					rfm12_txdataidxrp = 0;
+				}
+#endif
 				bytesp++;
 				if (rfm12_txdataidxwp == rfm12_txdataidxrp) {
 					break;
@@ -513,6 +555,8 @@ OPTIMIZER uint8_t rfm12_assemblePackage(void) {
 			rfm12_actgot = 0; //we need to get an act for this package
 			rfm12_retriesleft = RFM12_NUMERRETRIES;
 			rfm12_txpackets++;
+		} else {
+			rfm12_txacts++;
 		}
 		rfm12_txbufferlen = bytesp + 9;
 		if (bytesp) {
@@ -527,6 +571,7 @@ OPTIMIZER uint8_t rfm12_assemblePackage(void) {
 				//sent the data one last time.
 				rfm12_actgot = 1; //Dont wait for the act a last time
 				rfm12_txaborts++;
+				rfm12_badconnect++;
 			}
 		}
 		rfm12_txretries++;
@@ -611,6 +656,7 @@ OPTIMIZER uint8_t rfm12_rxData(void) {
 								}
 								rfm12_lastrxid = rfm12_rxbuffer[2];
 							} else { //wrong index, sender did not get our act, we need to send act again
+								rfm12_duppacket++;
 								//rs232_putchar('b'); . sender did not get our
 							}
 						} else { //no data...
@@ -619,17 +665,19 @@ OPTIMIZER uint8_t rfm12_rxData(void) {
 							//rs232_putchar('c');
 						}
 #endif
-						rfm12_rxbufferidx = 0;
-						rfm12_skipnext = 0;
 						if (rfm12_rxbuffer[0] & 1) {
 							rfm12_actgot = 1; //Other peer received our send packet right
 						}
+						rfm12_badconnect = 0;
 					} else { //wrong CRC
 						nextmode = 0;
 						rfm12_crcerrors++;
 						//rs232_putchar('d');
 						//rs232_puthex(crc);
 					}
+					//rs232_putchar('A'+pkglen);
+					rfm12_rxbufferidx = 0;
+					rfm12_skipnext = 0;
 				}
 			}
 		} else {
@@ -639,7 +687,7 @@ OPTIMIZER uint8_t rfm12_rxData(void) {
 		nextmode = 0;
 		//rs232_putchar('e');
 	}
-	if ((nextmode == 0) && (rfm12_mode != 1)) {
+	if ((nextmode == 0) && (rfm12_mode == 1)) {
 		rfm12_restartrx();
 	}
 	return nextmode;
@@ -711,9 +759,12 @@ void rfm12_init(void) {
 	rfm12_waitcycles = 0;
 	rfm12_retriesleft = 0;
 	rfm12_txpackets = 0;
+	rfm12_txacts = 0;
 	rfm12_txretries = 0;
-	rfm12_crcerrors = 0; //rx
 	rfm12_txaborts = 0;
+	rfm12_crcerrors = 0; //rx
+	rfm12_duppacket = 0;
+	rfm12_badconnect = 0;
 	if (!rfm12_randstate) {
 		rfm12_randstate = g_settings.reboots ^ g_settings.usageseconds ^ g_state.time;
 	}

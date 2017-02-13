@@ -19,6 +19,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <string.h>
 
 #include "main.h"
 #include <util/delay.h>
@@ -144,19 +145,28 @@ static uint8_t rs232_makehex(uint8_t value) {
 
 void rs232_sendstring(char * string) {
 	const char * index = string;
-	while (*index) {
-		rs232_putchar(*index);
-		index++;
+	uint8_t len = 0;
+	if (g_settings.debugRs232) {
+		while (*index) {
+			rs232_putchar(*index);
+			index++;
+		}
+		len = index - string;
 	}
 	if (rfm12_replicateready()) {
-		rfm12_send(string, index - string);
+		if (!len) {
+			len = strlen(string);
+		}
+		if (rfm12_txbufferfree() >= len) {
+			rfm12_send(string, len);
+		}
 	}
 }
 
 void rs232_puthex(uint8_t value) {
 	char buffer[3];
 	buffer[0] = rs232_makehex(value >> 4);
-	buffer[1] = rs232_makehex(value >> 4);
+	buffer[1] = rs232_makehex(value & 0xF);
 	buffer[2] = '\0';
 	rs232_sendstring(buffer);
 }
@@ -164,13 +174,20 @@ void rs232_puthex(uint8_t value) {
 void rs232_sendstring_P(const char * string) {
 	char c;
 	const char * index = string;
+	uint8_t len = 0;
 	if (g_settings.debugRs232) {
 		while ((c = pgm_read_byte(index))) {
 			rs232_putchar(c);
 			index++;
 		}
-		if (rfm12_replicateready()) {
-			rfm12_sendP(string, index - string);
+		len = index - string;
+	}
+	if (rfm12_replicateready()) {
+		if (!len) {
+			len = strlen_P(string);
+		}
+		if (rfm12_txbufferfree() >= len) {
+			rfm12_sendP(string, len);
 		}
 	}
 }

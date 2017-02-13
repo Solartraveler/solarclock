@@ -29,10 +29,13 @@
 #include "main.h"
 #include "displayRtc.h"
 #include "timeconvert.h"
+#include "rfm12.h"
 
 
 #define LOGGER_BASE_OFFSET 16
 
+#define LOGGER_MESSAGE_HUMANREAD_MAX 150
+#define LOGGER_MESSAGE_HEX_MAX 50
 
 /*
 Data format of the log:
@@ -337,6 +340,16 @@ void logger_print_iter(void) {
 	i2ceep_init();
 	uint8_t timestart = rtc_8thcounter;
 	do {
+		if (rfm12_replicateready()) {
+			uint16_t freerfm = rfm12_txbufferfree();
+			if ((freerfm < LOGGER_MESSAGE_HEX_MAX) ||
+			   ((freerfm < LOGGER_MESSAGE_HUMANREAD_MAX) && (g_state.logger.reportingmode == 2))) {
+				if (g_settings.debugRs232 == 0xC) {
+					rs232_sendstring_P(PSTR("Logwait\r\n"));
+				}
+				return; //only print if buffer is free. Otherwise we could end up waiting too long.
+			}
+		}
 		logger_print_entry(g_state.logger.reportingindex);
 		g_state.logger.reportingindex++;
 		if (g_state.logger.reportingindex >= g_state.logger.maxentries) {

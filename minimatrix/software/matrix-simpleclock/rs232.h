@@ -27,13 +27,16 @@ void rs232_rx_disable(void);
 //disables rx and tx
 void rs232_disable();
 
+//does not replicate the data to the rfm12
 void rs232_putchar(char ch);
 
 char rs232_getchar(void);
 
+//if enabled, replicates the data to the rfm12
 void rs232_puthex(uint8_t value);
-
+//if enabled, replicates the data to the rfm12
 void rs232_sendstring(char * string);
+//if enabled, replicates the data to the rfm12
 void rs232_sendstring_P(const char * string);
 
 #endif

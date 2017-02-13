@@ -36,7 +36,7 @@ typedef struct {
 		B. as 2 + DCF77 print (timer adjust + unconverted time received)
 		C. as 2 + Logger messages
 		D. as 2 + RC5 messages
-		E. as 2
+		E. as 2 + timing exceeds
 		F. as 2
 	*/
 	uint8_t debugRs232;

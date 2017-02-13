@@ -613,7 +613,7 @@ static void increaseRfmTimeout(void) {
 }
 
 //run 8 times per second
-static void run8xS(void) {
+static void run8xS(uint8_t delayed) {
 	DEBUG_FUNC_ENTER(run8xS);
 	//check for RS232 input
 	if ((g_settings.debugRs232 >= 2) || (g_state.rfm12modeis)) {
@@ -709,6 +709,10 @@ static void run8xS(void) {
 	if (g_state.irKeyCd) {
 		g_state.irKeyCd--;
 	}
+	//update logger reports
+	if (!delayed) {
+		logger_print_iter(); //we skip the logger if we are behind schedule
+	}
 	DEBUG_FUNC_LEAVE(run8xS);
 }
 
@@ -720,8 +724,6 @@ static void run4xS(void) {
 			menu_redraw();
 		}
 	}
-	//update logger reports
-	logger_print_iter();
 	//update rfm12 rec
 	rfm12_update();
 	DEBUG_FUNC_LEAVE(run4xS);
@@ -869,7 +871,7 @@ int main(void) {
 	power_setup();
 	disp_rtc_setup();
 	g_settings.debugRs232 = 1; //gets overwritten by config_load() anyway
-	rs232_sendstring_P(PSTR("Advanced-Clock V0.2\r\n"));
+	rs232_sendstring_P(PSTR("Advanced-Clock V0.3\r\n"));
 	config_load();
 	g_state.batteryCharged = g_settings.batteryCapacity;
 	g_state.batteryCharged *= (60*60);//mAh -> mAs
@@ -893,7 +895,15 @@ int main(void) {
 	while(1) {
 		uint8_t rtc_8thcounter_l = rtc_8thcounter; //rtc_8thcounter updated by interrupt
 		if (rtc_8thcounter_l != g_state.subsecond) { //1/8th second passed
-			run8xS();
+			uint8_t delayed = 0;
+			uint8_t subsecnext = g_state.subsecond + 1;
+			if (subsecnext !=  rtc_8thcounter_l) {
+				delayed = 1; //something took too much time
+				if (g_settings.debugRs232 == 0xE) {
+					rs232_sendstring_P(PSTR("TimeE\r\n"));
+				}
+			}
+			run8xS(delayed);
 			if ((g_state.subsecond & 1) == 0) {
 				run4xS();
 			}
@@ -910,39 +920,40 @@ int main(void) {
 			  alarm!
 			*/
 			g_state.subsecond++;
-		}
-		if (((PR_PRPD & PR_PRPE & PR_PRPF) == 0x7F) &&
-		   ((PR_PRPA & PR_PRPB) == 0x7) &&
-		   ((PR_PRPC & 0x7D) == 0x7D) && //TC1 may be active for performance measurement
-		   (PR_PRGEN == 0x1B)) {
-			//if no periphery is running except the rtc, stop the cpu
-			SLEEP.CTRL = (3<<1) | 1; //power save
 		} else {
-			//00 7F 6F 7F 07 07 1B
-			if (g_settings.debugRs232 == 9) {
-				rs232_puthex(PR_PRPC);
-				rs232_puthex(PR_PRPD);
-				rs232_puthex(PR_PRPE);
-				rs232_puthex(PR_PRPF);
-				rs232_puthex(PR_PRPA);
-				rs232_puthex(PR_PRPB);
-				rs232_puthex(PR_PRGEN);
-				rs232_putchar('\r');
-				rs232_putchar('\n');
+			if (((PR_PRPD & PR_PRPE & PR_PRPF) == 0x7F) &&
+			   ((PR_PRPA & PR_PRPB) == 0x7) &&
+			   ((PR_PRPC & 0x7D) == 0x7D) && //TC1 may be active for performance measurement
+			   (PR_PRGEN == 0x1B)) {
+				//if no periphery is running except the rtc, stop the cpu
+				SLEEP.CTRL = (3<<1) | 1; //power save
+			} else {
+				//00 7F 6F 7F 07 07 1B
+				if (g_settings.debugRs232 == 9) {
+					rs232_puthex(PR_PRPC);
+					rs232_puthex(PR_PRPD);
+					rs232_puthex(PR_PRPE);
+					rs232_puthex(PR_PRPF);
+					rs232_puthex(PR_PRPA);
+					rs232_puthex(PR_PRPB);
+					rs232_puthex(PR_PRGEN);
+					rs232_putchar('\r');
+					rs232_putchar('\n');
+				}
+				SLEEP.CTRL = 1; //idle
 			}
-			SLEEP.CTRL = 1; //idle
-		}
-		rtc_waitsafeoff();
-		uint16_t cntBeforeOff = TCC1.CNT;
-		g_state.performanceUp = 0;
-		sleep_cpu();
-		uint16_t cntAfterOff = TCC1.CNT;
-		SLEEP.CTRL = 0;
-		if (g_state.performanceUp) {
-			g_state.performanceOff += g_state.performanceUp - cntBeforeOff;
-		} else {
-			//counters never overflow here, so its safe
-			g_state.performanceOff += cntAfterOff - cntBeforeOff;
+			rtc_waitsafeoff();
+			uint16_t cntBeforeOff = TCC1.CNT;
+			g_state.performanceUp = 0;
+			sleep_cpu();
+			uint16_t cntAfterOff = TCC1.CNT;
+			SLEEP.CTRL = 0;
+			if (g_state.performanceUp) {
+				g_state.performanceOff += g_state.performanceUp - cntBeforeOff;
+			} else {
+				//counters never overflow here, so its safe
+				g_state.performanceOff += cntAfterOff - cntBeforeOff;
+			}
 		}
 	}
 }

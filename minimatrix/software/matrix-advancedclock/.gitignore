@@ -1,0 +1,10 @@
+*~
+*.o
+*.hex
+*.elf
+*.lss
+*.epp
+*.zip
+menudata.bin
+testcases/runtestcases
+linux-gui/demo-main

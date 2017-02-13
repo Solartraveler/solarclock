@@ -38,6 +38,9 @@ and we get back to idle state.
 //number of times a package is resent when there was no act
 #define RFM12_NUMERRETRIES 20
 
+//only in header for test cases, otherwise used in rfm12.c only:
+#define RFM12_TXDATABUFFERSIZE 256
+
 //call to get a key press received by the rfm12 device
 void rfm12_update(void);
 
@@ -46,6 +49,10 @@ void rfm12_standby(void);
 
 //enable RFM12 in receiver mode
 void rfm12_init(void);
+
+//gives the number of bytes the tx buffer can store without needing to wait
+//otherwise rfm12_send and rfm12_sendP might take up to 1/4sec until they abort
+uint16_t rfm12_txbufferfree(void);
 
 //send a string by the RFM12 module (needs to be initialized before)
 //returns 1 if successfully written to buffer, 0 if sending aborted
@@ -77,7 +84,6 @@ inline uint8_t rfm12_replicateready(void) {
 	}
 	return 0;
 }
-
 
 /* Internal functions, use for debugging only
 uint16_t rfm12_status(void);

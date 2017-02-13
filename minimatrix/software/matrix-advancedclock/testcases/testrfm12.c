@@ -56,6 +56,9 @@ extern volatile uint8_t rfm12_txdataidxwp; //write from print
 extern volatile uint8_t rfm12_txdataidxrp; //read from interrupt
 extern uint8_t rfm12_passstate; //if 3, commands are accepted
 
+extern volatile uint8_t rfm12_badconnect;
+
+
 extern uint32_t rfm12_txpackets;
 extern uint32_t rfm12_txretries;
 extern uint32_t rfm12_crcerrors; //rx
@@ -584,6 +587,10 @@ int testrfm12_txtextnoact(void) {
 		printf("%s:%i error, did not increment stat rfm12_txaborts counter, is %i\r\n", __func__, __LINE__, rfm12_txaborts);
 		errors = 1;
 	}
+	if (rfm12_badconnect != 1) {
+		printf("%s:%i error, did not increment rfm12_txbadconnect counter, is %i\r\n", __func__, __LINE__, rfm12_badconnect);
+		errors = 1;
+	}
 	return errors;
 }
 
@@ -648,6 +655,52 @@ int testrfm12_rxerror(void) {
 	return errors;
 }
 
+int tr12c_bufferfree(const char * fname, const int line, uint16_t should) {
+	uint16_t bfr = rfm12_txbufferfree();
+	if (bfr != should) {
+		printf("%s:%i: Buffer free wrong should %i is %i\n", fname, line, should, bfr);
+		return 1;
+	}
+	return 0;
+}
+
+int testrfm12_bufferfree(void) {
+	const char * hello = "Hello World";
+	uint8_t errors = 0;
+	rfm12_init();
+	rfm12_passstate = 3;
+	errors |= tr12c_bufferfree(__func__, __LINE__, RFM12_TXDATABUFFERSIZE);
+	size_t len1 = strlen(hello);
+	rfm12_send(hello, len1);
+	errors |= tr12c_bufferfree(__func__, __LINE__, RFM12_TXDATABUFFERSIZE - len1);
+	rfm12_txdataidxwp = RFM12_TXDATABUFFERSIZE - 1;
+	rfm12_txdataidxrp = RFM12_TXDATABUFFERSIZE - 1;
+	errors |= tr12c_bufferfree(__func__, __LINE__, RFM12_TXDATABUFFERSIZE);
+	rfm12_txdataidxwp = 0;
+	rfm12_txdataidxrp = RFM12_TXDATABUFFERSIZE - 1;
+	errors |= tr12c_bufferfree(__func__, __LINE__, RFM12_TXDATABUFFERSIZE - 1);
+	rfm12_txdataidxwp = RFM12_TXDATABUFFERSIZE - 1;
+	rfm12_txdataidxrp = 0;
+	errors |= tr12c_bufferfree(__func__, __LINE__, 1);
+	return errors;
+}
+
+int testrfm12_badconnect(void) {
+	const char * hello = "Hello World";
+	uint8_t errors = 0;
+	rfm12_init();
+	//testrfm12_txtextnoact already tests for variable increment
+	rfm12_badconnect = 50;
+	rfm12_passstate = 3;
+	size_t len1 = strlen(hello);
+	rfm12_send(hello, len1);
+	if (rfm12_passstate != 0) {
+		printf("%s:%i: Did not reset passstate. Is: %i\n", __func__, __LINE__, rfm12_passstate);
+		return 1;
+	}
+	return errors;
+}
+
 int testrfm12(void) {
 	int errors = 0;
 	errors += testrfm12_init();
@@ -661,5 +714,7 @@ int testrfm12(void) {
 	errors += testrfm12_txtextnoact();
 	errors += testrfm12_txerror();
 	errors += testrfm12_rxerror();
+	errors += testrfm12_bufferfree();
+	errors += testrfm12_badconnect();
 	return errors;
 }

@@ -18,6 +18,10 @@ inline uint8_t rfm12_replicateready(void) {
 	return 0;
 }
 
+inline uint8_t rfm12_txbufferfree(void) {
+	return 0;
+}
+
 #define rfm12_send(X, Y)
 #define rfm12_sendP(X, Y)
 
