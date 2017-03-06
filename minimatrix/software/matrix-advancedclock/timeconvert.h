@@ -15,4 +15,6 @@ uint8_t yearsince2000(uint32_t seconds, uint16_t * dofy);
 
 uint8_t calcweekdayfromtimestamp(uint32_t timestamp2000);
 
+uint8_t isSummertime(uint32_t timestamp2000, uint8_t wasSummertime);
+
 #endif

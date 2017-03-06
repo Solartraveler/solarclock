@@ -75,17 +75,21 @@ static void rc5decode(void) {
 }
 
 ISR(TCE0_OVF_vect) {
+	DEBUG_INT_ENTER(rc5_Timer);
 	rc5decode();
+	DEBUG_INT_LEAVE(rc5_Timer);
 }
 
 ISR(PORTC_INT0_vect) {
+	DEBUG_INT_ENTER(rc5_Pin);
 	PORTC.INT0MASK &= ~0x4; //stop this interrupt
 	rc5decode();
 	PR_PRPE &= ~PR_TC0_bm; //start clock timer E0
+	DEBUG_INT_LEAVE(rc5_Pin);
 }
 
 void rc5Init(void) {
-	DEBUG_FUNC_ENTER(rc5Init);
+	DEBUG_FUNC_ENTER(rc5_Init);
 	//configure ports
 	PORTC.DIRSET = 2;
 	PORTC.OUTSET = 2; //PC1 reciver on off switch
@@ -106,7 +110,7 @@ void rc5Init(void) {
 	PORTC.INTCTRL = 0x1; //low prio interrupt on int0
 	PORTC.INT0MASK = 0x4; //use pin2
 	PR_PRPE |= PR_TC0_bm; //stop clock timer E0
-	DEBUG_FUNC_LEAVE(rc5Init);
+	DEBUG_FUNC_LEAVE(rc5_Init);
 }
 
 uint16_t rc5getdata(void) {
@@ -119,7 +123,7 @@ uint16_t rc5getdata(void) {
 }
 
 void rc5Stop(void) {
-	DEBUG_FUNC_ENTER(rc5Stop)
+	DEBUG_FUNC_ENTER(rc5_Stop)
 	PR_PRPE |= PR_TC0_bm; //stop clock of timer E0
 	PORTC.DIRCLR = 2;
 	PORTC.OUTCLR = 2; //PC1 on off switch
@@ -127,5 +131,5 @@ void rc5Stop(void) {
 	PORTC.INT0MASK = 0;
 	PORTC.PIN1CTRL = PORT_OPC_PULLDOWN_gc;
 	PORTC.PIN2CTRL = PORT_OPC_PULLDOWN_gc;
-	DEBUG_FUNC_LEAVE(rc5Stop);
+	DEBUG_FUNC_LEAVE(rc5_Stop);
 }

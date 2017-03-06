@@ -71,7 +71,10 @@ typedef struct {
 	//new settings start here
 	uint16_t rfm12passcode; //initial number which must be entered in order to accept commands. 0...999
 	uint8_t summertimeadjust; //0 = no summer time adjust, 1 = summer time adjust
-	uint8_t reserved[32]; //decrease if new settings get in, so no crc mismatch on next start
+	uint8_t loggerPeriod; //[hour] until resync of dcf after last sync stopped
+	uint8_t dcf77Period; //[hour] how often a log is written
+	uint8_t flickerWorkaround; //if 1, workaround for display flicker is enabled (at the cost of more power consumption)
+	uint8_t reserved[29]; //decrease if new settings get in, so no crc mismatch on next start
 } settings_t;
 
 //upgrade path from old settings to new stettings:
@@ -125,6 +128,7 @@ typedef struct {
 	uint8_t timehcache; // [hours] value equivalent to ((time /(60*60) % 24), reduces cpu load by avoiding slow divisions
 	uint8_t timemcache; // [minutes] value equivalent to ((time / 60 % 60), reduces cpu load by avoiding slow divisions
 	uint8_t timescache; // [seconds] value equivalent to (time % 60), reduces cpu load by avoiding slow divisions
+	uint8_t summertime; //1 = the current time is the summer time.
 	int16_t freqdelta; //remaining error [(1/100)%] of the internal RC resonator compared to 32.768kHz crystal
 	uint16_t ldr; //lower 14 bits: [AD] raw value, upper 2 bits: conversion resistor selected
 	uint8_t brightnessLdr; //current one if ldr would be used (before slow adjust)
@@ -135,7 +139,7 @@ typedef struct {
 	uint8_t dotsOn;      // number of dots of the display currently enabled
 	uint16_t keyDebugAd; //[AD] raw value converted value of key B
 	uint16_t gradcelsius10; //[1/10°C]
-	uint16_t dcf77ResyncCd; //count down in [seconds] until dcf77 resync starts, also saves settings
+	uint32_t dcf77ResyncCd; //count down in [seconds] until dcf77 resync starts, also saves settings
 	uint16_t dcf77ResyncTrytimeCd; //count down in [8*seconds] until resync is aborted
 	uint8_t dcf77Synced; //0: never synced, 1: synced.
 	uint8_t irKeyCd; //count down in [1/8s]

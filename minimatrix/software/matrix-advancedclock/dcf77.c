@@ -178,6 +178,10 @@ void dcf77_getstatus(char * targetstring) {
 	sprintf_P(targetstring, PSTR("%s %i%%"), g_dcf77enabled ? "On" : "Off", g_dcf77signalquality);
 }
 
+/* Returns the sampled data byte for a given second (index) and a given minute
+(history minute).
+minutestart must be the index with the minute marker.
+*/
 static uint8_t d77x(uint8_t minutestart, uint8_t index, uint8_t historyminute) {
 	index += minutestart + 1;
 	if (index >= DCF77SECONDS) {
@@ -245,6 +249,10 @@ static uint8_t dcf77_analyze(uint8_t startindex) {
 		g_state.timemcache = (g_state.time / 60) % 60;
 		g_state.timehcache = (g_state.time / (60*60)) % 24;
 		g_state.dcf77Synced = 1;
+		//normally ignore summertime bits , but use it for the one undefined hour in the year
+		//bit 17 = 1 for summertime, bit 18 = for winter time.
+		uint8_t dcfsayssummertime = d77x(startindex, 17, DCF77DATAMINUTES - 1) > d77x(startindex, 18, DCF77DATAMINUTES - 1) ? 1 : 0;
+		g_state.summertime = isSummertime(utime, dcfsayssummertime);
 		updated = 1;
 	}
 	return updated;

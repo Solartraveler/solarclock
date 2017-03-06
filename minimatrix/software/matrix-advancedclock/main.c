@@ -48,9 +48,18 @@
 #include "logger.h"
 #include "debug.h"
 
+#define IRKEYS
+
+#ifndef IRKEYS
+
+#include "touch.h"
+#endif
+
+
 settings_t g_settings; //permanent settings
 sysstate_t g_state; //floating state of main program
 uint8_t g_debug __attribute__ ((section (".noinit")));
+uint8_t g_debugint __attribute__ ((section (".noinit")));
 
 void waitms(uint16_t ms) {
 	while (ms) {
@@ -458,49 +467,11 @@ static uint8_t irKeysRead(void) {
 	return 0;
 }
 
-static void update_alarmAndTimer(void) {
+static void update_alarmAndSound(void) {
 	if (g_state.timerCountdownSecs) {
 		g_state.timerCountdownSecs--;
 		if (!g_state.timerCountdownSecs) {
 			g_state.soundEnabledCd = g_settings.soundAutoOffMinutes*60;
-		}
-	}
-	if (g_state.dcf77Synced) {
-		if (g_state.timescache == 0) {
-			//check alarms
-			uint8_t m = g_state.timemcache;
-			uint8_t h = g_state.timehcache;
-			for (uint8_t i = 0; i < ALARMS; i++) {
-				if ((g_settings.alarmEnabled[i]) && (m == g_settings.alarmMinute[i]) && (h == g_settings.alarmHour[i])) {
-					uint8_t weekday = calcweekdayfromtimestamp(g_state.time);
-					uint8_t weekdaymask = 1<<(weekday);
-					if (weekdaymask & g_settings.alarmWeekdays[i]) {
-						g_state.soundEnabledCd = g_settings.soundAutoOffMinutes*60;
-					}
-				}
-			}
-			//check powersave time
-			if ((m == g_settings.powersaveMinuteStart) && (h == g_settings.powersaveHourStart)) {
-				uint8_t weekday = calcweekdayfromtimestamp(g_state.time);
-				if (g_settings.powersaveWeekdays & (1<<(weekday))) {
-					g_state.powersaveEnabled |= 1; //dont overwrite manual mode bit
-					rs232_sendstring_P(PSTR("Powersave enabled\r\n"));
-				}
-			}
-			if ((m == g_settings.powersaveMinuteStop) && (h == g_settings.powersaveHourStop)) {
-				/*We wont check the weekday here because, otherwise we wont get out of
-				 powersave if stop time is the next day and the next day should not
-				 enable powersave.
-				*/
-				g_state.powersaveEnabled &= ~1; //dont overwrite manual mode bit
-				rs232_sendstring_P(PSTR("Powersave disabled\r\n"));
-			}
-			if ((h == 22) && (m == 0)) {
-				config_save(); //only save once a day to not wear eeprom out
-			}
-			if (((h & 0x3) == 0) && (m == 0)) { //log every 4 hours: 0, 4, 8, 12, 16, 20 a clock
-				loggerlog_batreport();
-			}
 		}
 	}
 	if (g_state.soundEnabledCd) {
@@ -644,10 +615,12 @@ static void run8xS(uint8_t delayed) {
 		if (c == 'm') {
 			rfm12_showstats();
 		}
+/* Test only:
 		if (c == 'h') {
 			const char * buffer = PSTR("Hello world\n\r");
 			rfm12_sendP(buffer, strlen_P(buffer));
 		}
+*/
 		if (c > 0) {
 			g_state.displayNoOffCd = 60;
 		}
@@ -656,7 +629,7 @@ static void run8xS(uint8_t delayed) {
 	if (dcf77_is_enabled()) {
 		if (dcf77_update()) {
 			dcf77_disable();
-			g_state.dcf77ResyncCd = 60*60*6; //6 hours to next sync
+			g_state.dcf77ResyncCd = 60*60*g_settings.dcf77Period; //some hours to next sync
 			menu_keypress(100); //auto switch to clock, when in dcf77 view
 		}
 		if (g_state.dcf77ResyncTrytimeCd) {
@@ -678,7 +651,9 @@ static void run8xS(uint8_t delayed) {
 		     ((g_state.dcf77ResyncTrytimeCd > (8*60*60)) || (g_state.timehcache > 3 ) || (g_state.timehcache < 2))) ||
 		    (g_state.time < (10*60)) ||
 		    (dcf77_is_enabled() == 0) || (g_state.soundEnabledCd)) {
+#ifdef IRKEYS
 			irKey = irKeysRead();
+#endif
 		}
 	}
 	//read in RC-5 key
@@ -734,6 +709,9 @@ static void run2xS(void) {
 	DEBUG_FUNC_ENTER(run2xS);
 	//update display brightness
 	update_display_brightness();
+#ifndef IRKEYS
+	touch_test();
+#endif
 	DEBUG_FUNC_LEAVE(run2xS);
 }
 
@@ -761,6 +739,76 @@ static void update_performance(void) {
 	}
 }
 
+//run every full hour
+static void run1xH(void) {
+	//dst switches are run first, so every update cycle gets the same hour all over!
+	if (g_settings.summertimeadjust) {
+		uint8_t summertime = isSummertime(g_state.time, g_state.summertime);
+		if (summertime != g_state.summertime) {
+			if (summertime) {
+				g_state.time += 60*60;
+				g_state.timehcache++;
+			} else {
+				g_state.time -= 60*60;
+				g_state.timehcache--;
+			}
+			g_state.summertime = summertime;
+		}
+	}
+	uint8_t h = g_state.timehcache;
+	if (h == 22) {
+		config_save(); //only save once a day to not wear eeprom out
+	}
+	if ((h % g_settings.loggerPeriod) == 0) {
+		loggerlog_batreport();
+	}
+}
+
+static void updateAlarm(void) {
+	if (g_state.dcf77Synced) {
+		//check alarms
+		uint8_t m = g_state.timemcache;
+		uint8_t h = g_state.timehcache;
+		for (uint8_t i = 0; i < ALARMS; i++) {
+			if ((g_settings.alarmEnabled[i]) && (m == g_settings.alarmMinute[i]) && (h == g_settings.alarmHour[i])) {
+				uint8_t weekday = calcweekdayfromtimestamp(g_state.time);
+				uint8_t weekdaymask = 1<<(weekday);
+				if (weekdaymask & g_settings.alarmWeekdays[i]) {
+					g_state.soundEnabledCd = g_settings.soundAutoOffMinutes*60;
+				}
+			}
+		}
+	}
+}
+
+static void updatePowerSaving(void) {
+	if (g_state.dcf77Synced) {
+		uint8_t m = g_state.timemcache;
+		uint8_t h = g_state.timehcache;
+		//check powersave time
+		if ((m == g_settings.powersaveMinuteStart) && (h == g_settings.powersaveHourStart)) {
+			uint8_t weekday = calcweekdayfromtimestamp(g_state.time);
+			if (g_settings.powersaveWeekdays & (1<<(weekday))) {
+				g_state.powersaveEnabled |= 1; //dont overwrite manual mode bit
+				rs232_sendstring_P(PSTR("Powersave enabled\r\n"));
+			}
+		}
+		if ((m == g_settings.powersaveMinuteStop) && (h == g_settings.powersaveHourStop)) {
+			/*We wont check the weekday here because, otherwise we wont get out of
+			 powersave if stop time is the next day and the next day should not
+			 enable powersave.
+			*/
+			g_state.powersaveEnabled &= ~1; //dont overwrite manual mode bit
+			rs232_sendstring_P(PSTR("Powersave disabled\r\n"));
+		}
+	}
+}
+
+//run every full minute
+static void run1xM(void) {
+	updateAlarm();
+	updatePowerSaving();
+}
 
 //run 1 times per second
 static void run1xS(void) {
@@ -777,7 +825,9 @@ static void run1xS(void) {
 			if (g_state.timehcache >= 24) {
 				g_state.timehcache = 0;
 			}
+			run1xH(); //migh modify hour at daylight saving time switches!
 		}
+		run1xM();
 	}
 	//reset watchdog
 	wdt_reset();
@@ -804,7 +854,7 @@ static void run1xS(void) {
 	//update voltage and charger
 	charger_update();
 	//update alarm and timer
-	update_alarmAndTimer();
+	update_alarmAndSound();
 	//calculate consumption
 	update_consumption();
 	//cpu load and idle times
@@ -881,7 +931,7 @@ int main(void) {
 	gui_init();
 	charger_calib(); //takes a long time
 	logger_init(); //can take some time
-	loggerlog_bootup(g_settings.reboots, resetsource, g_debug);
+	loggerlog_bootup(g_settings.reboots, resetsource, g_debug, g_debugint);
 	g_debug = 0;
 	calibrate_start();
 	if (g_settings.debugRs232 >= 2) {
@@ -921,7 +971,8 @@ int main(void) {
 			*/
 			g_state.subsecond++;
 		} else {
-			if (((PR_PRPD & PR_PRPE & PR_PRPF) == 0x7F) &&
+			if ((g_settings.flickerWorkaround == 0) &&
+			   ((PR_PRPD & PR_PRPE & PR_PRPF) == 0x7F) &&
 			   ((PR_PRPA & PR_PRPB) == 0x7) &&
 			   ((PR_PRPC & 0x7D) == 0x7D) && //TC1 may be active for performance measurement
 			   (PR_PRGEN == 0x1B)) {

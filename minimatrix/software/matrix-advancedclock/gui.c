@@ -43,6 +43,7 @@ within this file, allows compiling and testing the whole GUI on a PC.
 #include "displayRtc.h"
 #include "rs232.h"
 #include "pintest.h"
+#include "sound.h"
 
 #else
 //PC compatibility layer
@@ -56,6 +57,7 @@ within this file, allows compiling and testing the whole GUI on a PC.
 #define rs232_rx_disable() printf("rs232_rx_disable()\r\n")
 #define rs232_rx_init() printf("rs232_rx_init()\r\n")
 #define pintest_runtest() 0
+#define sound_beep(X, Y, Z)
 
 void monthdayfromdayinyear(uint16_t dayinyear, uint16_t year, uint8_t * month, uint8_t * day);
 uint8_t yearsince2000(uint32_t seconds, uint16_t * dofy);
@@ -373,6 +375,8 @@ static void updateText(void) {
 	sprintf_P((char*)menu_strings[MENU_TEXT_CalibRes], PSTR("%i0mΩ"), g_settings.currentResCal);
 	sprintf_P((char*)menu_strings[MENU_TEXT_Dcf77Level], PSTR("E<=%i"), g_settings.dcf77Level);
 	sprintf_P((char*)menu_strings[MENU_TEXT_Rebootcounter], PSTR("%lu"), (long)g_settings.reboots);
+	sprintf_P((char*)menu_strings[MENU_TEXT_Dcf77Period], PSTR("D P: %ih"), g_settings.dcf77Period);
+	sprintf_P((char*)menu_strings[MENU_TEXT_LoggerPeriod], PSTR("L P: %ih"), g_settings.loggerPeriod);
 	if (g_settings.clockShowSeconds) {
 		sprintf_P((char*)menu_strings[MENU_TEXT_ShowSecs], PSTR("Sec On"));
 	} else {
@@ -419,6 +423,11 @@ static void updateText(void) {
 		sprintf_P((char*)menu_strings[MENU_TEXT_Summertime], PSTR("Adj off"));
 	}
 	sprintf_P((char*)menu_strings[MENU_TEXT_Rfm12passkey], PSTR("Key %03u"), g_settings.rfm12passcode);
+	if (g_settings.flickerWorkaround) {
+		sprintf_P((char*)menu_strings[MENU_TEXT_FlickerWorkaround], PSTR("Fix on"));
+	} else {
+		sprintf_P((char*)menu_strings[MENU_TEXT_FlickerWorkaround], PSTR("Fix off"));
+	}
 }
 
 static uint8_t dcf77On(void) {
@@ -599,18 +608,20 @@ static uint8_t soundAutoOffInc(void) {
 }
 
 static uint8_t soundVolumeDec(void) {
-	if (g_settings.soundVolume >= 10) {
-		g_settings.soundVolume -= 10;
+	if (g_settings.soundVolume >= 5) {
+		g_settings.soundVolume -= 5;
 	}
 	updateText();
+	sound_beep(g_settings.soundVolume, g_settings.soundFrequency, 100);
 	return 1;
 }
 
 static uint8_t soundVolumeInc(void) {
-	if (g_settings.soundVolume <= 245) {
-		g_settings.soundVolume += 10;
+	if (g_settings.soundVolume <= 250) {
+		g_settings.soundVolume += 5;
 	}
 	updateText();
+	sound_beep(g_settings.soundVolume, g_settings.soundFrequency, 100);
 	return 1;
 }
 
@@ -619,6 +630,7 @@ static uint8_t soundFreqDec(void) {
 		g_settings.soundFrequency -= 100;
 	}
 	updateText();
+	sound_beep(g_settings.soundVolume, g_settings.soundFrequency, 100);
 	return 1;
 }
 
@@ -627,6 +639,7 @@ static uint8_t soundFreqInc(void) {
 		g_settings.soundFrequency += 100;
 	}
 	updateText();
+	sound_beep(g_settings.soundVolume, g_settings.soundFrequency, 100);
 	return 1;
 }
 
@@ -958,6 +971,72 @@ static uint8_t rfm12PasskeyMod(uint8_t index) {
 	return 1;
 }
 
+#define PERIODTIMES 6
+const uint8_t periodTimes[PERIODTIMES] = {1, 2, 4, 6, 12, 24};
+
+static uint8_t gui_PeriodIndex(uint8_t value) {
+	uint8_t i = 0;
+	for (i = 0; i < PERIODTIMES; i++) {
+		if (periodTimes[i] == value) {
+			return i;
+		}
+	}
+	return 0;
+}
+
+static uint8_t gui_PeriodNext(uint8_t value) {
+	uint8_t index = gui_PeriodIndex(value);
+	if ((index+1) < PERIODTIMES) {
+		return periodTimes[index+1];
+	}
+	return periodTimes[index];
+}
+
+static uint8_t gui_PeriodPrev(uint8_t value) {
+	uint8_t index = gui_PeriodIndex(value);
+	if ((index > 0) && (index <= PERIODTIMES)) {
+		return periodTimes[index-1];
+	}
+	return periodTimes[0];
+}
+
+static uint8_t dcf77PeriodInc(void) {
+	g_settings.dcf77Period = gui_PeriodNext(g_settings.dcf77Period);
+	updateText();
+	return 1;
+}
+
+static uint8_t dcf77PeriodDec(void) {
+	g_settings.dcf77Period = gui_PeriodPrev(g_settings.dcf77Period);
+	updateText();
+	return 1;
+}
+
+static uint8_t loggerPeriodInc(void) {
+	g_settings.loggerPeriod = gui_PeriodNext(g_settings.loggerPeriod);
+	updateText();
+	return 1;
+}
+
+static uint8_t loggerPeriodDec(void) {
+	g_settings.loggerPeriod = gui_PeriodPrev(g_settings.loggerPeriod);
+	updateText();
+	return 1;
+}
+
+static uint8_t flickerWorkaroundOff(void) {
+	g_settings.flickerWorkaround = 0;
+	updateText();
+	return 1;
+}
+
+static uint8_t flickerWorkaroundOn(void) {
+	g_settings.flickerWorkaround = 1;
+	updateText();
+	return 1;
+}
+
+
 unsigned char menu_action(unsigned short action) {
 	unsigned char redraw = 0;
 	switch(action) {
@@ -1047,6 +1126,12 @@ unsigned char menu_action(unsigned short action) {
 		case MENU_ACTION_Rfm12passkey1:      redraw = rfm12PasskeyMod(0); break;
 		case MENU_ACTION_Rfm12passkey10:     redraw = rfm12PasskeyMod(1); break;
 		case MENU_ACTION_Rfm12passkey100:    redraw = rfm12PasskeyMod(2); break;
+		case MENU_ACTION_Dcf77PeriodInc:     redraw = dcf77PeriodInc(); break;
+		case MENU_ACTION_Dcf77PeriodDec:     redraw = dcf77PeriodDec(); break;
+		case MENU_ACTION_LoggerPeriodInc:    redraw = loggerPeriodInc(); break;
+		case MENU_ACTION_LoggerPeriodDec:    redraw = loggerPeriodDec(); break;
+		case MENU_ACTION_FlickerWorkaroundOff: redraw = flickerWorkaroundOff(); break;
+		case MENU_ACTION_FlickerWorkaroundOn: redraw = flickerWorkaroundOn(); break;
 	}
 	if (g_dispUpdate) {
 		g_dispUpdate();

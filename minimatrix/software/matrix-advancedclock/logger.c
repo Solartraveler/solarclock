@@ -294,6 +294,7 @@ static void logger_print_entry(uint16_t entryidx) {
 			uint32_t rebootnum = entry.data.lreboot.rebootnum;
 			uint8_t cause = entry.data.lreboot.rebootcause;
 			uint8_t debug = entry.data.lreboot.debugtrace;
+			uint8_t debugint = entry.data.lreboot.debuginttrace;
 			snprintf_P(buffer, DEBUG_CHARS, PSTR("REBO, %lu, cause:"), (unsigned long)rebootnum);
 			rs232_sendstring(buffer);
 			buffer[0] = '\0';
@@ -308,7 +309,7 @@ static void logger_print_entry(uint16_t entryidx) {
 			}
 			if (cause & 0x8) {
 				rs232_sendstring_P(PSTR(" Watchdog"));
-				snprintf_P(buffer, DEBUG_CHARS, PSTR(" trace: %u"), debug);
+				snprintf_P(buffer, DEBUG_CHARS, PSTR(" trace: %u inttrace: %u"), debug, debugint);
 			}
 			if (cause & 0x10) {
 				rs232_sendstring_P(PSTR(" Debug"));

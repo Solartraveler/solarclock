@@ -72,6 +72,7 @@ void ISR_RFM12_TIMER(void);
 uint8_t rtc_8thcounter;
 
 uint8_t g_debug;
+uint8_t g_debugint;
 uint16_t g_testrfm12status = 0x4800;
 uint8_t g_testrfm12databyte;
 

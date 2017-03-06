@@ -1,5 +1,5 @@
 Advanced clock TODO:
-Display flicker                    -> still no idea
+Display flicker                    -> Wont fix: still no idea why. But workaround can be enabled in debug menu (increases the power consumtion a little)
 Power save mode selectable         -> Done
 Power save mode for specific times -> Done
 RC-5 Receiver                      -> Done
@@ -12,6 +12,8 @@ Redundant config load/store        -> Done
 Crashes on keypress                -> TODO (cause likely enabling of RC-5 decoder)
 Touch keys                         -> TODO
 Smooth brightness adjust           -> TODO
-Summer winter time adjust          -> TODO
-DCF77 sync wait time adjustable    -> TODO
-Logger status write adjustable     -> TODO
+Summer winter time adjust          -> Done
+DCF77 sync wait time adjustable    -> Done
+Logger status write time adjustable -> Done
+Manual time adjust                 -> TODO
+Manual charger state adjust        -> TODO

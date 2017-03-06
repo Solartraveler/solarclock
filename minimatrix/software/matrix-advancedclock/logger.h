@@ -23,6 +23,7 @@ typedef struct __attribute__((packed)) {
 	uint32_t rebootnum;
 	uint8_t rebootcause;
 	uint8_t debugtrace;
+	uint8_t debuginttrace;
 } lreboot_t;
 
 typedef struct __attribute__((packed)) {
@@ -63,11 +64,12 @@ inline void loggerlog_synced(uint32_t newtime, uint16_t errorrate) {
 	logger_writemessage(LOG_MESSAGE_DCFSYNC, (uint8_t*)&lsync, sizeof(lsync));
 }
 
-inline void loggerlog_bootup(uint32_t rebootnum, uint8_t rebootcause, uint8_t debugtrace) {
+inline void loggerlog_bootup(uint32_t rebootnum, uint8_t rebootcause, uint8_t debugtrace, uint8_t debuginttrace) {
 	lreboot_t lreboot;
 	lreboot.rebootnum = rebootnum;
 	lreboot.rebootcause = rebootcause;
 	lreboot.debugtrace = debugtrace;
+	lreboot.debuginttrace = debuginttrace;
 	logger_writemessage(LOG_MESSAGE_REBOOT, (uint8_t*)&lreboot, sizeof(lreboot));
 }
 

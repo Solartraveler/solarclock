@@ -1,5 +1,5 @@
 /* Matrix-Advancedclock
-  (c) 2014-2016 by Malte Marwedel
+  (c) 2014-2017 by Malte Marwedel
   www.marwedels.de/malte
 
   This program is free software; you can redistribute it and/or modify
@@ -65,6 +65,7 @@ int testyearsince2000(uint32_t timestamp, uint16_t yearshould, uint16_t doyshoul
 	}
 	return 0;
 }
+
 int testcalcweekdayfromtimestamp(uint32_t timestamp2000, uint8_t dowshould) {
 	uint8_t dowis = calcweekdayfromtimestamp(timestamp2000) + 1;
 	if (dowshould != dowis) {
@@ -73,6 +74,17 @@ int testcalcweekdayfromtimestamp(uint32_t timestamp2000, uint8_t dowshould) {
 	}
 	return 0;
 }
+
+int testcalcsummertime(uint32_t timestamp2000, uint8_t summertimeshould) {
+	uint8_t summertimeis = isSummertime(timestamp2000, summertimeshould);
+	if (summertimeshould != summertimeis) {
+		printf("Testcase testcalcsummertime %u failed. Should: %i, is: %i\n", timestamp2000, summertimeshould, summertimeis);
+		return 1;
+	}
+	return 0;
+
+}
+
 
 int testtimeconvert(void) {
 	int errors = 0;
@@ -124,5 +136,18 @@ int testtimeconvert(void) {
 	errors += testcalcweekdayfromtimestamp(secondssince2000(16) + 24*60*60, 6); //2.1.2016
 	errors += testcalcweekdayfromtimestamp(secondssince2000(16) + 247*24*60*60, 7); //4.9.2016
 	errors += testcalcweekdayfromtimestamp(secondssince2000(16) + ((uint32_t)dayofyear(4-1, 9-1, 2016))*24*60*60, 7);
+	//calculate summertime
+	errors += testcalcsummertime(0, 0); //1.1.2000
+	errors += testcalcsummertime(1   * 24*60*60, 0); //2.1.2000
+	errors += testcalcsummertime(85  * 24*60*60, 0); //26.3.2000 (last sunday) 0:00
+	errors += testcalcsummertime(85  * 24*60*60 + 60*60*2+1, 1); //26.3.2000 (last sunday) 2:01 -> jump to 3:01
+	errors += testcalcsummertime(213 * 24*60*60, 1); //1.8.2000
+	errors += testcalcsummertime(302 * 24*60*60 + 60*60*2-60, 1); //29.10.2000 (last sunday) 1:59 (summertime)
+	errors += testcalcsummertime(302 * 24*60*60 + 60*60*2+30, 1); //29.10.2000 (last sunday) 2:30 -> undefined
+	errors += testcalcsummertime(302 * 24*60*60 + 60*60*2+30, 0); //29.10.2000 (last sunday) 2:30 -> undefined
+	errors += testcalcsummertime(302 * 24*60*60 + 60*60*3+1, 0); //29.10.2000 (last sunday) 3:01 -> wintertime
+	errors += testcalcsummertime(365 * 24*60*60, 0); //31.12.2000
+	errors += testcalcsummertime((365+366+89) * 24*60*60 + 60*60*2-1, 0); //31.3.2002 (last sunday = last day of month) 1:59
+	errors += testcalcsummertime((365+366+89) * 24*60*60 + 60*60*2+1, 1); //31.3.2002 (last sunday = last day of month) 2:01
 	return errors;
 }

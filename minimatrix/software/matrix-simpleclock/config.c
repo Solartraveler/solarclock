@@ -46,7 +46,7 @@ void config_load(void) {
 		rs232_sendstring_P(PSTR("New settings\r\n"));
 		memset((uint8_t*)(&g_settings), 0, sizeof(settings_t));
 		g_settings.alarmHour = 8;
-		g_settings.soundVolume = 240;
+		g_settings.soundVolume = 120;
 		g_settings.soundFrequency = 1000;
 		g_settings.soundAutoOffMinutes = 5;
 		g_settings.displayRefresh = 100;

@@ -52,8 +52,8 @@ TX POS  RX POS
                 If at least one data byte, first byte(7) is an id.
                 Receiver accepts package when ID is different to the previous
                 one.
-                Transmitter increases ID if the reception has been actknowledged
-                or the the actknowledge is not received within some timeout.
+                Transmitter increases ID if the reception has been acknowledged
+                or the the acknowledge is not received within some timeout.
 N+1     M+1   : CRC of bytes 5...N/0...M
 N+2     ------: 0 - not received
 Speciality in protocol: If one byte is 0x0 or 0xFF, the next byte will be
@@ -699,7 +699,7 @@ ISR(RFM12_TIMER_INT)
 void ISR_RFM12_TIMER(void)
 #endif
 {
-	DEBUG_FUNC_ENTER(rfm12_timer);
+	DEBUG_INT_ENTER(rfm12_timer);
 	PMIC.CTRL &= ~PMIC_LOLVLEN_bm;
 	sei();
 	if (rfm12_mode == 0) {
@@ -737,7 +737,7 @@ void ISR_RFM12_TIMER(void)
 	}
 	cli();
 	PMIC.CTRL |= PMIC_LOLVLEN_bm;
-	DEBUG_FUNC_LEAVE(rfm12_timer);
+	DEBUG_INT_LEAVE(rfm12_timer);
 }
 
 void rfm12_init(void) {

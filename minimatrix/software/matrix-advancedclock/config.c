@@ -83,7 +83,7 @@ void config_load(void) {
 			g_settings.alarmHour[i] = 8;
 			g_settings.alarmWeekdays[i] = 0x7F; //all days on
 		}
-		g_settings.soundVolume = 240;
+		g_settings.soundVolume = 120;
 		g_settings.soundFrequency = 1000;
 		g_settings.soundAutoOffMinutes = 5;
 		g_settings.displayRefresh = 100;
@@ -100,6 +100,8 @@ void config_load(void) {
 		g_settings.dcf77Level = DCF77LEVEL_NORMAL;
 		g_settings.rfm12passcode = 123;
 		g_settings.summertimeadjust = 1;
+		g_settings.dcf77Period = 6;
+		g_settings.loggerPeriod = 4;
 	} else {
 		rs232_sendstring_P(PSTR("Valid settings in EEPROM\r\n"));
 		//validate value ranges
@@ -159,6 +161,18 @@ void config_load(void) {
 		}
 		if (g_settings.summertimeadjust > 1) {
 			g_settings.summertimeadjust = 1;
+		}
+		if (g_settings.dcf77Period > 24) {
+			g_settings.dcf77Period = 24;
+		}
+		if (g_settings.dcf77Period < 1) {
+			g_settings.dcf77Period = 1;
+		}
+		if (g_settings.loggerPeriod > 24) {
+			g_settings.loggerPeriod = 24;
+		}
+		if (g_settings.loggerPeriod < 1) {
+			g_settings.loggerPeriod = 1;
 		}
 	}
 }

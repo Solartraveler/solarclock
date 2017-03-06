@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<MenuConfig utf8="-1" Xsize="28" Ysize="5" compact="-1" graphviz="1" languages="1" multilang="0">
+<MenuConfig utf8="-1" Xsize="28" Ysize="5" compact="-1" graphviz="0" languages="1" multilang="0">
   <window number="30" comment="D - Show DCF77" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="DcfValue" number="1" multilang="0" storagemethod="1"/>
     <shortcut action="DisplayUpdateOff" number="2" screen="window 29" shortcutkey="1"/>
@@ -292,7 +292,7 @@
     <label Xpos="0" Ypos="0" font="14" text="Volt in" number="1" multilang="0" storagemethod="0"/>
     <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
     <shortcut action="" number="3" screen="window 51" shortcutkey="2"/>
-    <shortcut action="" number="4" screen="window 101" shortcutkey="3"/>
+    <shortcut action="" number="4" screen="window 112" shortcutkey="3"/>
     <shortcut action="ShowVoltageOn" number="5" screen="window 11" shortcutkey="4"/>
   </window>
   <window number="51" comment="MD - Current" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
@@ -417,9 +417,30 @@
   <window number="101" comment="MD - Elapsed time meter" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="TimeOp" number="1" multilang="0" storagemethod="0"/>
     <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
-    <shortcut action="" number="3" screen="window 1" shortcutkey="2"/>
+    <shortcut action="" number="3" screen="window 108" shortcutkey="2"/>
     <shortcut action="" number="4" screen="window 100" shortcutkey="3"/>
     <shortcut action="ShowElapsedtimeOn" number="5" screen="window 103" shortcutkey="4"/>
+  </window>
+  <window number="108" comment="MD - Logger period" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Log Per" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 109" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 101" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 110" shortcutkey="4"/>
+  </window>
+  <window number="109" comment="MD - DCF77 sync period" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="DCF Per" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 112" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 108" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 111" shortcutkey="4"/>
+  </window>
+  <window number="112" comment="MD - Flicker workaround&#xA;Enabling the workaround prevents the RC oscillator from stopping. This prevents sporadic loss of interrupts which can be seen as flicker on the LED display." focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="FBugfix" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 1" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 109" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 113" shortcutkey="4"/>
   </window>
   <window number="11" comment="D - Show voltage&#xA;of the input" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="InputVoltage" number="1" multilang="0" storagemethod="1"/>
@@ -500,6 +521,24 @@
   <window number="103" comment="D - Elapsed time meter" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="Elapsedtimemeter" number="1" multilang="0" storagemethod="1"/>
     <shortcut action="DisplayUpdateOff" number="2" screen="window 101" shortcutkey="1"/>
+  </window>
+  <window number="110" comment="D - Logger period" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="LoggerPeriod" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 108" shortcutkey="1"/>
+    <shortcut action="LoggerPeriodDec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="LoggerPeriodInc" number="4" screen="" shortcutkey="3"/>
+  </window>
+  <window number="111" comment="D - DCF77 sync period" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Dcf77Period" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 109" shortcutkey="1"/>
+    <shortcut action="Dcf77PeriodDec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="Dcf77PeriodInc" number="4" screen="" shortcutkey="3"/>
+  </window>
+  <window number="113" comment="D - Flicker workaround" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="FlickerWorkaround" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 112" shortcutkey="1"/>
+    <shortcut action="FlickerWorkaroundOff" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="FlickerWorkaroundOn" number="4" screen="" shortcutkey="3"/>
   </window>
   <subwindow Xpos="0" Ypos="0" Xsize="29" Ysize="6" number="56" comment="Battery low" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="BatLow" number="1" multilang="0" storagemethod="0"/>

@@ -47,6 +47,10 @@ uint16_t dayofyear(uint8_t day, uint8_t month, uint16_t year) {
 
 /*
 returns the month and day from the day in year and the year.
+input:
+year: can be 2 or 4 digits, since its only used for leap year calculation
+dayinyear: 0...365
+output:
 month is in the range 0...11
 day is in the range 0...30
 So to show something proper, add +1 later.
@@ -116,5 +120,55 @@ uint8_t calcweekdayfromtimestamp(uint32_t timestamp2000) {
 	uint16_t dofy;
 	uint8_t y2digit = yearsince2000(timestamp2000, &dofy);
 	return calcweekday(dofy, y2digit);
+}
+
+static uint32_t secondsSinceYearBeginning(uint8_t day, uint8_t month, uint16_t year) {
+	return dayofyear(day, month, year) * 60*60*24;
+}
+
+//returns 1 if the time should be the summer time.
+//if the state cant be determined, wasSummertime is returned
+uint8_t isSummertime(uint32_t timestamp2000, uint8_t wasSummertime) {
+/*the rule:
+  a) Last sunday of march, it should be summer time after 2:00
+  b) Last sunday of october, it should be winter time after 3:00, so
+     the time between 2 and 3 can be undefined without additional information,
+     in this case wasSummertime is returned to avoid switching winter and summer
+     time back and forth
+*/
+	//0. get current year
+	uint16_t dofy;
+	uint8_t y2digit = yearsince2000(timestamp2000, &dofy);
+	uint32_t timestampFirstDayInYear = secondssince2000(y2digit);
+	//1. get timestamp for last day of march and october
+	uint32_t timestampLastDayMarch = timestampFirstDayInYear + secondsSinceYearBeginning(30, 2, y2digit);
+	uint32_t timestampLastDayOctober = timestampFirstDayInYear + secondsSinceYearBeginning(30, 9, y2digit);
+	//2. get day in week of last days in months
+	uint8_t dayinweekLastDayMarch = calcweekdayfromtimestamp(timestampLastDayMarch);
+	uint8_t dayinweekLastDayOctober = calcweekdayfromtimestamp(timestampLastDayOctober);
+	//3. get last sunday in month
+	uint8_t lastSundayMarch = 30; //proper if last day of month = sunday
+	if (dayinweekLastDayMarch < 6) //if not a sunday
+		lastSundayMarch -= dayinweekLastDayMarch + 1; //monday = 0 -> substract one -> get sunday, tuesday = 1 -> ubstract two -> get sunday
+	uint8_t lastSundayOctober = 30; //proper if last day of month = sunday
+	if (dayinweekLastDayOctober < 6) //if not a sunday
+		lastSundayOctober -= dayinweekLastDayOctober + 1;
+	//4. get new timestamp of last sundays
+	uint32_t timestampLastSundayMarch = timestampFirstDayInYear + secondsSinceYearBeginning(lastSundayMarch, 2, y2digit);
+	uint32_t timestampLastSundayOctober = timestampFirstDayInYear + secondsSinceYearBeginning(lastSundayOctober, 9, y2digit);
+	//5. offset to 2:00
+	uint32_t summertimestart = timestampLastSundayMarch + 60*60*2;
+	uint32_t summertimestop = timestampLastSundayOctober + 60*60*2;
+	uint32_t wintertimestart = summertimestop + 60*60; //one hour later 3:00
+	if (timestamp2000 < summertimestart) {
+		return 0; //wintertime at beginning of the year
+	}
+	if (timestamp2000 >= wintertimestart) {
+		return 0; //wintertime at end of the year
+	}
+	if (timestamp2000 < summertimestop) {
+		return 1; //summertime
+	}
+	return wasSummertime; //undefined hour.
 }
 
