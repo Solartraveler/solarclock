@@ -182,7 +182,7 @@ static void update_consumption(void) {
 	uas += (uint16_t)g_state.performanceRcRunning * 120 / 256; //120 / 256;
 	uas += (uint16_t)g_state.performanceCpuRunning * 1100 / 256; //1100 / 256;
 	uas += (uint16_t)(g_state.performanceRcRunning - g_state.performanceCpuRunning) * 340 / 256; //340 / 256;
-	uas += 725; //constant offset
+	uas += 674; //constant offset (after R39 removal, otherwise + 51µA)
 	if (g_state.rc5modeis) {
 		uas += 350; //typical current according to datasheet at 3.3V.
 	}
@@ -322,7 +322,7 @@ g_state.brightnessLdr -> calculated from g_state.ldr, would be used if auto adju
 g_settings.brightness -> would be used under manual control
 g_state.brigthness -> current brightness for display to use
 */
-static void update_display_brightness(void) {
+static void update_display_brightnessMeasure(void) {
 	if ((g_settings.brightnessAuto) || (g_dispUpdate == updateLightText) ||
 	    (g_dispUpdate == updateDispbrightText)) {
 		update_ldr();
@@ -358,52 +358,61 @@ static void update_display_brightness(void) {
 		}
 		g_state.brightnessLdr = newbrightness;
 	}
-	//newbrightness = value if the LDR would be used
-	if (g_settings.brightnessAuto) {
-		//slow adjust
-		if (newbrightness < g_state.brightness) {
-			g_state.brightUpCd = 3;
-			if (g_state.brightDownCd) {
-				newbrightness = g_state.brightness;
-				g_state.brightDownCd--;
-			} else if ((newbrightness < (g_state.brightness - 9)) &&
-				    (g_state.brightness > 20)) {
-				newbrightness = g_state.brightness - 10;
-			} else {
-				newbrightness = g_state.brightness - 1;
-			}
-		} else if (newbrightness > g_state.brightness) {
-			g_state.brightDownCd = 3;
-			if (g_state.brightUpCd) {
-				newbrightness = g_state.brightness;
-				g_state.brightUpCd--;
-			} else if (newbrightness > (g_state.brightness + 9)) {
-				newbrightness = g_state.brightness + 10;
-			} else {
-				newbrightness = g_state.brightness + 1;
-			}
-		} else {
-			g_state.brightUpCd = 2;
-			g_state.brightDownCd = 2;
-		}
+}
+
+static void update_display_brightnessAdjust(void) {
+	uint8_t newbrightness;
+	//1. determine target brigtness
+	if ((g_state.powersaveEnabled) && (g_state.displayNoOffCd == 0)) {
+		newbrightness = 0; //power save
+	} else if (g_settings.brightnessAuto) {
+		//newbrightness = value if the LDR would be used
+		newbrightness = g_state.brightnessLdr;
 	} else {
+		//user selectedbrightness
 		newbrightness = g_settings.brightness;
 	}
 	//newbrightness = value according to LDR changes or user select
-	//now care about powersave
-	if ((g_state.powersaveEnabled) && (g_state.displayNoOffCd == 0)) {
-		newbrightness = g_state.brightness >> 1; //fast dimming
+	//2. count down adjustment blocking
+	if (g_state.brightDownCd) g_state.brightDownCd--;
+	if (g_state.brightUpCd) g_state.brightUpCd--;
+	//3. fast adjust within few seconds target brightness should be reached
+	int16_t brightdelta = newbrightness - g_state.brightness;
+	newbrightness = g_state.brightness; //default case, keep as current
+	if (brightdelta < 0) {
+		g_state.brightUpCd = 8; //when ramping down, prevent ramping up soon
+		if ((g_state.brightDownCd == 0) || (brightdelta < -20)) {
+			int16_t adjust = brightdelta/4;
+			if (adjust == 0) {
+				adjust = -1;
+			}
+			newbrightness += adjust;
+		}
+	} else if (brightdelta > 0) {
+		g_state.brightDownCd = 8; //when ramping up, prevent ramping down soon
+		if ((g_state.brightUpCd == 0) || (brightdelta > 20)) {
+			int16_t adjust = brightdelta/4;
+			if (adjust == 0) {
+				adjust = 1;
+			}
+			newbrightness += adjust;
+		}
+	} else {
+		g_state.brightUpCd = 6;
+		g_state.brightDownCd = 6;
 	}
+	//4. update brightness if value differs
 	if (newbrightness != g_state.brightness) {
 		disp_configure_set(newbrightness, g_settings.displayRefresh);
 		g_state.brightness = newbrightness;
 	}
+	//debug output:
 	if (g_settings.debugRs232 == 3) {
 		char buffer[DEBUG_CHARS+1];
 		buffer[DEBUG_CHARS] = '\0';
 		snprintf_P(buffer, DEBUG_CHARS, PSTR("BrVals: %u %i %i %i %i %i\r\n"),
 		g_state.ldr, g_state.brightnessLdr, g_settings.brightness,
-  	g_state.brightness, newbrightness, g_settings.brightnessAuto);
+  	brightdelta, newbrightness, g_settings.brightnessAuto);
 		rs232_sendstring(buffer);
 		if ((g_state.powersaveEnabled) && (g_state.displayNoOffCd)) {
 			snprintf_P(buffer, DEBUG_CHARS, PSTR("Powersave in %is\r\n"), g_state.displayNoOffCd);
@@ -411,6 +420,7 @@ static void update_display_brightness(void) {
 		}
 	}
 }
+
 
 static void watchdog_enable(void) {
 	CCP = 0xD8; //change protection
@@ -583,10 +593,7 @@ static void increaseRfmTimeout(void) {
 	}
 }
 
-//run 8 times per second
-static void run8xS(uint8_t delayed) {
-	DEBUG_FUNC_ENTER(run8xS);
-	//check for RS232 input
+static void updateDebugInput(void) {
 	if ((g_settings.debugRs232 >= 2) || (g_state.rfm12modeis)) {
 		char c = rs232_getchar();
 		if (c == 0) {
@@ -615,6 +622,12 @@ static void run8xS(uint8_t delayed) {
 		if (c == 'm') {
 			rfm12_showstats();
 		}
+		if (c == 'c') {
+			menu_action(103); //decrease battery state by 1mAh
+		}
+		if (c == 'C') {
+			menu_action(104); //increase battery state by 1mAh
+		}
 /* Test only:
 		if (c == 'h') {
 			const char * buffer = PSTR("Hello world\n\r");
@@ -625,6 +638,13 @@ static void run8xS(uint8_t delayed) {
 			g_state.displayNoOffCd = 60;
 		}
 	}
+}
+
+//run 8 times per second
+static void run8xS(uint8_t delayed) {
+	DEBUG_FUNC_ENTER(run8xS);
+	//check for RS232 input
+	updateDebugInput();
 	//update DCF77
 	if (dcf77_is_enabled()) {
 		if (dcf77_update()) {
@@ -684,6 +704,8 @@ static void run8xS(uint8_t delayed) {
 	if (g_state.irKeyCd) {
 		g_state.irKeyCd--;
 	}
+	//smooth brightness adjustment
+	update_display_brightnessAdjust();
 	//update logger reports
 	if (!delayed) {
 		logger_print_iter(); //we skip the logger if we are behind schedule
@@ -708,7 +730,7 @@ static void run4xS(void) {
 static void run2xS(void) {
 	DEBUG_FUNC_ENTER(run2xS);
 	//update display brightness
-	update_display_brightness();
+	update_display_brightnessMeasure();
 #ifndef IRKEYS
 	touch_test();
 #endif
@@ -789,7 +811,7 @@ static void updatePowerSaving(void) {
 		if ((m == g_settings.powersaveMinuteStart) && (h == g_settings.powersaveHourStart)) {
 			uint8_t weekday = calcweekdayfromtimestamp(g_state.time);
 			if (g_settings.powersaveWeekdays & (1<<(weekday))) {
-				g_state.powersaveEnabled |= 1; //dont overwrite manual mode bit
+				g_state.powersaveEnabled |= 0x1; //dont overwrite manual mode bit
 				rs232_sendstring_P(PSTR("Powersave enabled\r\n"));
 			}
 		}
@@ -798,9 +820,15 @@ static void updatePowerSaving(void) {
 			 powersave if stop time is the next day and the next day should not
 			 enable powersave.
 			*/
-			g_state.powersaveEnabled &= ~1; //dont overwrite manual mode bit
+			g_state.powersaveEnabled &= ~0x1; //dont overwrite manual mode bit
 			rs232_sendstring_P(PSTR("Powersave disabled\r\n"));
 		}
+	}
+	//check if voltage is critically low
+	if (g_state.batVoltage < 2150) {
+		g_state.powersaveEnabled |= 0x4;
+	} else if (g_state.batVoltage >= 2200) {
+		g_state.powersaveEnabled &= ~0x4;
 	}
 }
 
@@ -921,7 +949,7 @@ int main(void) {
 	power_setup();
 	disp_rtc_setup();
 	g_settings.debugRs232 = 1; //gets overwritten by config_load() anyway
-	rs232_sendstring_P(PSTR("Advanced-Clock V0.3\r\n"));
+	rs232_sendstring_P(PSTR("Advanced-Clock V0.4\r\n"));
 	config_load();
 	g_state.batteryCharged = g_settings.batteryCapacity;
 	g_state.batteryCharged *= (60*60);//mAh -> mAs
@@ -971,7 +999,7 @@ int main(void) {
 			*/
 			g_state.subsecond++;
 		} else {
-			if ((g_settings.flickerWorkaround == 0) &&
+			if (((g_settings.flickerWorkaround == 0) || (g_state.brightness == 0)) &&
 			   ((PR_PRPD & PR_PRPE & PR_PRPF) == 0x7F) &&
 			   ((PR_PRPA & PR_PRPB) == 0x7) &&
 			   ((PR_PRPC & 0x7D) == 0x7D) && //TC1 may be active for performance measurement

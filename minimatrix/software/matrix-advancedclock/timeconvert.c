@@ -79,7 +79,7 @@ uint32_t secondssince2000(uint8_t year2digits) {
 	uint8_t leapyears = (year2digits + 3) /4;
 	leapyears -= year2digits / 100;
 //	leapyears += year2digits / 400; cant happen because only two digits are given
-	seconds += (uint32_t)leapyears*60L*60L*24L;
+	seconds += (uint32_t)leapyears*60UL*60UL*24UL;
 	return seconds;
 }
 
@@ -89,14 +89,11 @@ uint32_t secondssince2000(uint8_t year2digits) {
           day of year: 0: First day, 1: second day...
 */
 uint8_t yearsince2000(uint32_t seconds, uint16_t * dofy) {
-	uint16_t days = seconds / (60L*60L*24L); //time in days
+	uint16_t days = seconds / (60UL*60UL*24UL); //time in days
 	//years = days/365.2425
-	uint8_t years = (uint32_t)days * 10000L / 3652425L;
+	uint8_t years = ((uint32_t)days * 100UL)/ 36525UL;
 	if (dofy) {
-		uint16_t tdofy = days - (uint32_t)years * 3652425L / 10000L;
-		if (years) {
-			tdofy--; //year 2000 is a leapyear too
-		}
+		uint16_t tdofy = ((uint32_t)days * 100UL - (uint32_t)years * 36525UL) / 100UL;
 		*dofy = tdofy;
 	}
 	return years;
@@ -123,7 +120,7 @@ uint8_t calcweekdayfromtimestamp(uint32_t timestamp2000) {
 }
 
 static uint32_t secondsSinceYearBeginning(uint8_t day, uint8_t month, uint16_t year) {
-	return dayofyear(day, month, year) * 60*60*24;
+	return dayofyear(day, month, year) * 60UL*60UL*24UL;
 }
 
 //returns 1 if the time should be the summer time.
@@ -172,3 +169,31 @@ uint8_t isSummertime(uint32_t timestamp2000, uint8_t wasSummertime) {
 	return wasSummertime; //undefined hour.
 }
 
+uint8_t daysInMonth(uint8_t month, uint8_t year2digit) {
+	if (month < 11) {
+		uint8_t leapday = 0;
+		if ((month == 1) && (isleapyear(year2digit))) { //february
+			leapday = 1;
+		}
+		return g_dayoffset[month+1] - g_dayoffset[month] + leapday;
+	}
+	return 31; //december
+}
+
+uint32_t timestampFromDate(uint8_t day, uint8_t month, uint8_t year2digit, uint32_t offset) {
+	return secondssince2000(year2digit) + dayofyear(day, month, year2digit)*24UL*60UL*60UL + offset;
+}
+
+uint32_t dateFromTimestamp(uint32_t timestamp2000, uint8_t * day, uint8_t * month, uint8_t * year2digit, uint16_t * dayOfYear) {
+	uint32_t clock = timestamp2000 % (60UL*60UL*24UL);
+	uint16_t dofy;
+	uint8_t y = yearsince2000(timestamp2000, &dofy);
+	if (year2digit) *year2digit = y;
+	if (dayOfYear) *dayOfYear = dofy;
+	uint8_t m;
+	uint8_t d;
+	monthdayfromdayinyear(dofy, y, &m, &d);
+	if (month) *month = m;
+	if (day) *day = d;
+	return clock;
+}

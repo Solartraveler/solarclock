@@ -59,8 +59,6 @@ within this file, allows compiling and testing the whole GUI on a PC.
 #define pintest_runtest() 0
 #define sound_beep(X, Y, Z)
 
-void monthdayfromdayinyear(uint16_t dayinyear, uint16_t year, uint8_t * month, uint8_t * day);
-uint8_t yearsince2000(uint32_t seconds, uint16_t * dofy);
 void dcf77_getstatus(char* text);
 unsigned char pgm_read_byte(const unsigned char * addr) {
 	return *addr;
@@ -108,7 +106,7 @@ uint8_t updateDcf77Text(void) {
 The static variable helps caching the text printing and avoiding calls to
 menu_update if nothing changed
 */
-uint8_t updateClockText(void) {
+uint8_t updateClockTextGeneric(uint8_t clockShowSeconds) {
 	static uint8_t slast = 255;
 	static uint8_t mlast = 255;
 	static uint8_t hlast = 255;
@@ -116,13 +114,13 @@ uint8_t updateClockText(void) {
 	uint8_t s = g_state.timescache;
 	uint8_t m = g_state.timemcache;
 	uint8_t h = g_state.timehcache;
-	if ((g_settings.clockShowSeconds != clockShowSecondslast) || (mlast != m) ||
-	    (hlast != h) || ((slast != s) && (g_settings.clockShowSeconds))) {
-		clockShowSecondslast = g_settings.clockShowSeconds;
+	if ((clockShowSeconds != clockShowSecondslast) || (mlast != m) ||
+	    (hlast != h) || ((slast != s) && (clockShowSeconds))) {
+		clockShowSecondslast = clockShowSeconds;
 		slast = s;
 		mlast = m;
 		hlast = h;
-		if (g_settings.clockShowSeconds) {
+		if (clockShowSeconds) {
 			sprintf_P((char*)menu_strings[MENU_TEXT_Clock], PSTR("%2i:%02i:%02i"), h, m, s);
 			if (h < 10) {
 				menu_strings[MENU_TEXT_Clock][0] = '\t';
@@ -138,19 +136,26 @@ uint8_t updateClockText(void) {
 	return 0;
 }
 
+uint8_t updateClockText(void) {
+	return updateClockTextGeneric(g_settings.clockShowSeconds);
+}
+
+uint8_t updateClockSetText(void) {
+	return updateClockTextGeneric(1);
+}
+
 uint8_t updateDateText(void) {
 	static uint32_t timelast = 0;
 	uint32_t temp = g_state.time;
 	if (temp != timelast) {
 		timelast = temp;
-		uint16_t dofy;
-		uint16_t y = yearsince2000(temp, &dofy);
+		uint8_t y;
 		uint8_t month;
 		uint8_t d;
-		monthdayfromdayinyear(dofy, y, &month, &d);
+		dateFromTimestamp(temp, &d, &month, &y, NULL);
 		month++; //starts with 0
 		d++; //starts with 0
-		sprintf_P((char*)menu_strings[MENU_TEXT_Date], PSTR("%02i.%02i.%2i"), (uint16_t)d, (uint16_t)month, y);
+		sprintf_P((char*)menu_strings[MENU_TEXT_Date], PSTR("%02i.%02i.%2i"), (uint16_t)d, (uint16_t)month, (uint16_t)y);
 		return 1;
 	}
 	return 0;
@@ -1036,6 +1041,106 @@ static uint8_t flickerWorkaroundOn(void) {
 	return 1;
 }
 
+static uint8_t chargerChargedDec(void) {
+	if (g_state.batteryCharged > 60*60) {
+		g_state.batteryCharged -= 60*60; //sub 1mAh
+	}
+	updateText();
+	return 1;
+}
+
+static uint8_t chargerChargedInc(void) {
+	uint32_t batmax = g_settings.batteryCapacity*60*60;
+	if (g_state.batteryCharged < batmax) {
+		g_state.batteryCharged += 60*60; //add 1mAh
+	}
+	updateText();
+	return 1;
+}
+
+static uint8_t timeManualHourInc(void) {
+	g_state.timehcache++;
+	if (g_state.timehcache >= 24) g_state.timehcache = 0;
+	g_state.time = ((((g_state.time / (60UL*60UL*24UL)) * 24UL) + (uint32_t)g_state.timehcache)* 60UL + (uint32_t)g_state.timemcache) * 60UL + g_state.timescache;
+	updateClockSetText();
+	return 1;
+}
+
+static uint8_t timeManualMinInc(void) {
+	g_state.timemcache++;
+	if (g_state.timemcache >= 60) g_state.timemcache = 0;
+	g_state.time = (((g_state.time / (60*60)) * 60) + g_state.timemcache)* 60L + g_state.timescache;
+	updateClockSetText();
+	return 1;
+}
+
+static uint8_t timeManualSecZero(void) {
+	g_state.timescache = 0;
+	g_state.time = g_state.time / 60 * 60; //clear out the seconds
+	updateClockSetText();
+	return 1;
+}
+
+static uint8_t dateManualDayInc(void) {
+	//split seconds up
+	uint8_t month;
+	uint8_t d;
+	uint8_t y;
+	uint32_t clock = dateFromTimestamp(g_state.time, &d, &month, &y, NULL);
+	uint8_t daysinmonth = daysInMonth(month, y);
+	//increment
+	d++;
+	if (d >= daysinmonth) {
+		d = 0;
+	}
+	//merge togehter
+	g_state.time = timestampFromDate(d, month, y, clock);
+	updateDateText();
+	return 1;
+}
+
+static uint8_t dateManualMonthInc(void) {
+	//split seconds up
+	uint8_t month;
+	uint8_t d;
+	uint8_t y;
+	uint32_t clock = dateFromTimestamp(g_state.time, &d, &month, &y, NULL);
+	//increment
+	month++;
+	if (month >= 12) {
+		month = 0;
+	}
+	uint8_t daysinnewmonth = daysInMonth(month, y);
+	if (d >= daysinnewmonth) {
+		d = daysinnewmonth-1;
+	}
+	//merge togehter
+	g_state.time = timestampFromDate(d, month, y, clock);
+	updateDateText();
+	return 1;
+}
+
+static uint8_t dateManualYearInc(void) {
+	//split seconds up
+	uint8_t month;
+	uint8_t d;
+	uint8_t y;
+	uint32_t clock = dateFromTimestamp(g_state.time, &d, &month, &y, NULL);
+	//increment
+	y++;
+	if (y >= 100) {
+		y = 0;
+	}
+	uint8_t daysinnewmonth = daysInMonth(month, y);
+	if (d >= daysinnewmonth) {
+		d = daysinnewmonth-1;
+	}
+	//merge togehter
+	g_state.time = timestampFromDate(d, month, y, clock);
+	updateDateText();
+	return 1;
+}
+
 
 unsigned char menu_action(unsigned short action) {
 	unsigned char redraw = 0;
@@ -1045,6 +1150,7 @@ unsigned char menu_action(unsigned short action) {
 		case MENU_ACTION_ShowLightOn:        g_dispUpdate = &updateLightText; break;
 		case MENU_ACTION_ShowDCF77On:        g_dispUpdate = &updateDcf77Text; break;
 		case MENU_ACTION_ShowClockOn:        g_dispUpdate = &updateClockText; break;
+		case MENU_ACTION_ShowClockSetOn:     g_dispUpdate = &updateClockSetText; break;
 		case MENU_ACTION_ShowDateOn:         g_dispUpdate = &updateDateText; break;
 		case MENU_ACTION_ShowTemperatureOn:  g_dispUpdate = &updateTemperatureText; break;
 		case MENU_ACTION_ShowKeysOn:         g_dispUpdate = &updateKeysText; break;
@@ -1132,6 +1238,14 @@ unsigned char menu_action(unsigned short action) {
 		case MENU_ACTION_LoggerPeriodDec:    redraw = loggerPeriodDec(); break;
 		case MENU_ACTION_FlickerWorkaroundOff: redraw = flickerWorkaroundOff(); break;
 		case MENU_ACTION_FlickerWorkaroundOn: redraw = flickerWorkaroundOn(); break;
+		case MENU_ACTION_ChargerChargedInc:  redraw = chargerChargedInc(); break;
+		case MENU_ACTION_ChargerChargedDec:  redraw = chargerChargedDec(); break;
+		case MENU_ACTION_TimeManualHourInc:  redraw = timeManualHourInc(); break;
+		case MENU_ACTION_TimeManualMinInc:   redraw = timeManualMinInc(); break;
+		case MENU_ACTION_TimeManualSecZero:  redraw = timeManualSecZero(); break;
+		case MENU_ACTION_DateManualDayInc:   redraw = dateManualDayInc(); break;
+		case MENU_ACTION_DateManualMonthInc: redraw = dateManualMonthInc(); break;
+		case MENU_ACTION_DateManualYearInc:  redraw = dateManualYearInc(); break;
 	}
 	if (g_dispUpdate) {
 		g_dispUpdate();

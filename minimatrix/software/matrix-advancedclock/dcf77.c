@@ -233,13 +233,12 @@ static uint8_t dcf77_analyze(uint8_t startindex) {
 		rs232_sendstring(buffer);
 	}
 	if ((result == 2) && (errorrate <= (g_settings.dcf77Level * DCF77DATAMINUTES))) {
-		uint16_t dof = dayofyear(day-1, month-1, year2digit);
-		uint32_t utime = (uint32_t)minute*60 +
+		uint32_t utime = timestampFromDate(day-1, month-1, year2digit,
+		                 (uint32_t)minute*60 +
 		                 (uint32_t)hour*60*60 +
-		                 (uint32_t)dof*60*60*24 +
-		                 secondssince2000(year2digit) +
-		                 (DCF77DATAMINUTES-1) * SECONDSINMINUTE - 1;
+		                 (DCF77DATAMINUTES-1) * SECONDSINMINUTE - 1);
 		if (g_settings.debugRs232 == 0xB) {
+			uint16_t dof = dayofyear(day-1, month-1, year2digit);
 			snprintf_P(buffer, DEBUG_CHARS, PSTR("dof=%i utime=%lu\r\n"), dof, (long unsigned)utime);
 			rs232_sendstring(buffer);
 		}

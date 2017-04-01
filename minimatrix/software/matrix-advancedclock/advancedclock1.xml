@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<MenuConfig utf8="-1" Xsize="28" Ysize="5" compact="-1" graphviz="0" languages="1" multilang="0">
+<MenuConfig utf8="-1" Xsize="28" Ysize="5" compact="-1" graphviz="1" languages="1" multilang="0">
   <window number="30" comment="D - Show DCF77" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="DcfValue" number="1" multilang="0" storagemethod="1"/>
     <shortcut action="DisplayUpdateOff" number="2" screen="window 29" shortcutkey="1"/>
@@ -292,7 +292,7 @@
     <label Xpos="0" Ypos="0" font="14" text="Volt in" number="1" multilang="0" storagemethod="0"/>
     <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
     <shortcut action="" number="3" screen="window 51" shortcutkey="2"/>
-    <shortcut action="" number="4" screen="window 112" shortcutkey="3"/>
+    <shortcut action="" number="4" screen="window 116" shortcutkey="3"/>
     <shortcut action="ShowVoltageOn" number="5" screen="window 11" shortcutkey="4"/>
   </window>
   <window number="51" comment="MD - Current" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
@@ -438,9 +438,23 @@
   <window number="112" comment="MD - Flicker workaround&#xA;Enabling the workaround prevents the RC oscillator from stopping. This prevents sporadic loss of interrupts which can be seen as flicker on the LED display." focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="FBugfix" number="1" multilang="0" storagemethod="0"/>
     <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
-    <shortcut action="" number="3" screen="window 1" shortcutkey="2"/>
+    <shortcut action="" number="3" screen="window 114" shortcutkey="2"/>
     <shortcut action="" number="4" screen="window 109" shortcutkey="3"/>
     <shortcut action="" number="5" screen="window 113" shortcutkey="4"/>
+  </window>
+  <window number="114" comment="MD - Time manual set" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Man Hr" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 116" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 112" shortcutkey="3"/>
+    <shortcut action="ShowClockSetOn" number="5" screen="window 115" shortcutkey="4"/>
+  </window>
+  <window number="116" comment="MD - Date manual set" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="15" text="Man Dat" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 1" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 114" shortcutkey="3"/>
+    <shortcut action="ShowDateOn" number="5" screen="window 117" shortcutkey="4"/>
   </window>
   <window number="11" comment="D - Show voltage&#xA;of the input" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="InputVoltage" number="1" multilang="0" storagemethod="1"/>
@@ -450,9 +464,11 @@
     <label Xpos="0" Ypos="0" font="14" text="ChargerCurrent" number="1" multilang="0" storagemethod="1"/>
     <shortcut action="DisplayUpdateOff" number="2" screen="window 51" shortcutkey="1"/>
   </window>
-  <window number="60" comment="D - Show battery mAh state&#xA;Only estimated..." focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+  <window number="60" comment="D - Show battery mAh state&#xA;Only estimated...&#xA;For security reason, changeing the value is only possible over the RS232/RFM12 with the c and C key when in this view." focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="15" text="ChargerCharged" number="1" multilang="0" storagemethod="1"/>
     <shortcut action="DisplayUpdateOff" number="2" screen="window 61" shortcutkey="1"/>
+    <shortcut number="3" shortcutkey="103" action="ChargerChargedDec" screen=""/>
+    <shortcut number="4" shortcutkey="104" action="ChargerChargedInc" screen=""/>
   </window>
   <window number="58" comment="D - Charger mode" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="ChargerMode" number="1" multilang="0" storagemethod="1"/>
@@ -539,6 +555,20 @@
     <shortcut action="" number="2" screen="window 112" shortcutkey="1"/>
     <shortcut action="FlickerWorkaroundOff" number="3" screen="" shortcutkey="2"/>
     <shortcut action="FlickerWorkaroundOn" number="4" screen="" shortcutkey="3"/>
+  </window>
+  <window number="115" comment="D - Time manual set" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Clock" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 114" shortcutkey="1"/>
+    <shortcut action="TimeManualHourInc" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="TimeManualMinInc" number="4" screen="" shortcutkey="3"/>
+    <shortcut number="5" shortcutkey="4" action="TimeManualSecZero" screen=""/>
+  </window>
+  <window number="117" comment="D - Date manual set" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Date" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 116" shortcutkey="1"/>
+    <shortcut action="DateManualDayInc" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="DateManualMonthInc" number="4" screen="" shortcutkey="3"/>
+    <shortcut number="5" shortcutkey="4" action="DateManualYearInc" screen=""/>
   </window>
   <subwindow Xpos="0" Ypos="0" Xsize="29" Ysize="6" number="56" comment="Battery low" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="BatLow" number="1" multilang="0" storagemethod="0"/>

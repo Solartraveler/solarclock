@@ -7,15 +7,15 @@
 #include "makedata.h"
 
 uint8_t calcleapyear(int year) {
-	//Wenn Jahr durch 4 ohne Rest teilbar, aber nicht durch 100
+	//If divideable by 4 without remainder but not by 100 without remainder
 	uint8_t isschaltjahr;
 	if (((year % 4) == 0)&&((year % 100) != 0)) {
-  	isschaltjahr = 1;        //Dann Schaltjahr
+  	isschaltjahr = 1;        //Leapyear
 	} else {
-		isschaltjahr = 0;        //Dann kein Schaltjahr
+		isschaltjahr = 0;        //No leapyear
 	}
-	if ((year % 400) == 0) {   //Wenn Jahr durch 400 Teilbar
-		isschaltjahr = 1;        //Dann doch wieder Schaltjahr
+	if ((year % 400) == 0) {   //If year divideable by 400
+		isschaltjahr = 1;        //Its a leap year
 	}
 	return isschaltjahr;
 }
@@ -58,7 +58,7 @@ uint8_t calcweekday(int day, int month, int year) {
 
 const uint8_t signal[2] = {SIGNAL0, SIGNAL1};
 
-const uint8_t daysInMonth[MONTHSINYEAR] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+const uint8_t g_daysInMonth[MONTHSINYEAR] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 uint8_t calcparity(uint8_t * data, uint8_t elem) {
 	uint8_t parity = 0;
@@ -195,7 +195,7 @@ void makedataall(uint8_t * datafiled, float errorrate, uint16_t year, uint8_t mo
 		if (dayofweek == 8) {
 			dayofweek = 1;
 		}
-		if ((day > daysInMonth[month-1]) || ((month == 2) && (day > 28) && calcleapyear(year))) {
+		if ((day > g_daysInMonth[month-1]) || ((month == 2) && (day > 28) && calcleapyear(year))) {
 			day = 1;
 			month++;
 		}
@@ -222,7 +222,7 @@ int main(int argc, char ** argv) {
 	//sanity input
 	if ((minute >= MINUTESINHOUR) || (hour >= HOURSINDAY) ||
 	    (month > MONTHSINYEAR) || (month < 1) || (day < 1) ||
-	    (day > daysInMonth[month-1])) {
+	    (day > g_daysInMonth[month-1])) {
 		printf("Error: Invalid input\n");
 		return 1;
 	}

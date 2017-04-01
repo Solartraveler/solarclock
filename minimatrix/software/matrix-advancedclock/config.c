@@ -102,6 +102,7 @@ void config_load(void) {
 		g_settings.summertimeadjust = 1;
 		g_settings.dcf77Period = 6;
 		g_settings.loggerPeriod = 4;
+		g_settings.flickerWorkaround = 0;
 	} else {
 		rs232_sendstring_P(PSTR("Valid settings in EEPROM\r\n"));
 		//validate value ranges
@@ -173,6 +174,9 @@ void config_load(void) {
 		}
 		if (g_settings.loggerPeriod < 1) {
 			g_settings.loggerPeriod = 1;
+		}
+		if (g_settings.flickerWorkaround > 1) {
+			g_settings.flickerWorkaround = 1;
 		}
 	}
 }

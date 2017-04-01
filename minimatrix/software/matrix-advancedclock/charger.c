@@ -48,8 +48,7 @@ void charger_disable(void);
 #define CHARGER_MV_MAX 3400
 #define CHARGER_MA_MAX 200
 #define CHARGER_MA_MANUAL_MAX 400
-#define CHARGER_MV_LOW 2300
-#define CHARGER_MV_BAT_LOW 2100
+#define CHARGER_MV_BAT_LOW 2300
 
 #ifndef UNIT_TEST
 

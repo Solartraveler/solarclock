@@ -254,15 +254,18 @@ void disp_configure_set(uint8_t brightness, uint16_t refreshrate) {
 		if ((toff_line_rtc < 6) && (toff_line_rtc)) {
 			toff_line_rtc = 6;
 		}
+		if (RTC_INTCTRL & RTC_COMPINTLVL_HI_gc) {
+			while (disp_row >= 4); //minimize chances for flicker case below
+		}
 		cli();
 		disp_timing_active_rtc = ton_rtc;
 		disp_timing_idle_rtc = toff_rtc;
 		disp_timing_active_delay_cycles = ton_cpu;
 		disp_timing_idle_line_rtc = toff_line_rtc;
-		if ((disp_row == 5) && ((ton_cpu < (DISP_WITHIN_INT_LIMIT>>2)) ||
-		    (toff_rtc == 0))) {
-			//flicker free hight bright -> low bright transition
-			//flicker free hight bright -> max bright transition
+		if ((disp_row == 5) &&
+		    ((ton_cpu < (DISP_WITHIN_INT_LIMIT>>2)) || (toff_rtc == 0))) {
+			//less flicker hight bright -> low bright transition
+			//less flicker hight bright -> max bright transition
 			disp_row = 4;
 		}
 		sei();

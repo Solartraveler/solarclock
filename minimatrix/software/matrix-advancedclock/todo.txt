@@ -1,19 +1,20 @@
 Advanced clock TODO:
-Display flicker                    -> Wont fix: still no idea why. But workaround can be enabled in debug menu (increases the power consumtion a little)
-Power save mode selectable         -> Done
-Power save mode for specific times -> Done
-RC-5 Receiver                      -> Done
-RFM12 RX/TX                        -> Done
-Advanced timer                     -> Done
-Pin Selftest                       -> Done
-Logger                             -> Done
-Reboot/runtime counter             -> Done
-Redundant config load/store        -> Done
-Crashes on keypress                -> TODO (cause likely enabling of RC-5 decoder)
-Touch keys                         -> TODO
-Smooth brightness adjust           -> TODO
-Summer winter time adjust          -> Done
-DCF77 sync wait time adjustable    -> Done
+Display flicker                     -> Wont fix: still no idea why. But workaround can be enabled in debug menu (increases the power consumtion a little)
+Power save mode selectable          -> Done
+Power save mode for specific times  -> Done
+RC-5 Receiver                       -> Done
+RFM12 RX/TX                         -> Done
+Advanced timer                      -> Done
+Pin Selftest                        -> Done
+Logger                              -> Done
+Reboot/runtime counter              -> Done
+Redundant config load/store         -> Done
+Crashes on keypress                 -> TODO (only observed when enabling of RC-5 decoder)
+Touch keys                          -> TODO
+Smooth brightness adjust            -> Done (source of flicker while brightness reduce is likely caused by insufficient LED voltage regulation)
+Summer winter time adjust           -> Done
+DCF77 sync wait time adjustable     -> Done
 Logger status write time adjustable -> Done
-Manual time adjust                 -> TODO
-Manual charger state adjust        -> TODO
+Manual time adjust                  -> Done
+Manual charger state adjust         -> Done
+Auto powersave on critical voltage  -> Done

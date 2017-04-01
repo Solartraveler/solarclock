@@ -272,14 +272,12 @@ static void logger_print_entry(uint16_t entryidx) {
 		//human readable appending
 		char buffer[DEBUG_CHARS+1];
 		buffer[DEBUG_CHARS] = '\0';
-		uint8_t s = entry.timestamp % 60;
-		uint8_t m = (entry.timestamp/60) % 60;
-		uint8_t h = (entry.timestamp/(60*60)) % 24;
-		uint16_t dofy;
-		uint16_t year = yearsince2000(entry.timestamp, &dofy);
-		uint8_t month, day;
-		monthdayfromdayinyear(dofy, year, &month, &day);
-		year += 2000;
+		uint8_t year2digit, month, day;
+		uint32_t timeofday = dateFromTimestamp(entry.timestamp, &day, &month, &year2digit, NULL);
+		uint8_t s = timeofday  % 60;
+		uint8_t m = (timeofday / 60) % 60;
+		uint8_t h = timeofday / (60*60);
+		uint16_t year = year2digit + 2000;
 		month++;
 		day++;
 		snprintf_P(buffer, DEBUG_CHARS, PSTR(" %7lu %04u-%02u-%02u %2u:%02u:%02u "), (unsigned long)entry.id, year, month, day, h, m, s);

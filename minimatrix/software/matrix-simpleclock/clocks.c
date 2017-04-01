@@ -1,5 +1,5 @@
 /* Matrix-Simpleclock
-  (c) 2014-2016 by Malte Marwedel
+  (c) 2014-2017 by Malte Marwedel
   www.marwedels.de/malte
 
   This program is free software; you can redistribute it and/or modify
@@ -132,7 +132,7 @@ void clock_highspeed(void) {
 	uint8_t timeout = 0;
 	OSC_CTRL &= ~OSC_PLLEN_bm; //otherwise scaler cant be changed
 	//enable PLL
-	OSC_PLLCTRL = 8; //from 2 to 16MHz (requires >= 2.2V)
+	OSC_PLLCTRL = 8; //from 2 to 16MHz (requires >= 2.2V, however the device seems to go much faster under "comfortable" temperatures)
 	OSC_CTRL |= OSC_PLLEN_bm; //start pll
 	//wait until stable
 	while (!(OSC_STATUS & OSC_PLLRDY_bm) && (timeout < 100)) {
@@ -153,6 +153,9 @@ void clock_highspeed(void) {
 		}
 		if (TCD0.CTRLA == TC_CLKSEL_DIV1_gc) { //dcf77 sample
 			TCD0.CTRLA = TC_CLKSEL_DIV8_gc;
+		}
+		if (TCE1.CTRLA == TC_CLKSEL_DIV1_gc) { //rfm12 sample
+			TCE1.CTRLA = TC_CLKSEL_DIV8_gc;
 		}
 		if (TCD1.CTRLA == TC_CLKSEL_DIV8_gc) { //rc calibration value
 			TCD1.CTRLA = TC_CLKSEL_DIV64_gc;
@@ -176,6 +179,9 @@ void clock_normalspeed(void) {
 	}
 	if (TCD0.CTRLA == TC_CLKSEL_DIV8_gc) { //dcf77 sample
 		TCD0.CTRLA = TC_CLKSEL_DIV1_gc;
+	}
+	if (TCE1.CTRLA == TC_CLKSEL_DIV8_gc) { //rfm12 sample
+		TCE1.CTRLA = TC_CLKSEL_DIV1_gc;
 	}
 	if (TCD1.CTRLA == TC_CLKSEL_DIV64_gc) { //rc calibration value
 		TCD1.CTRLA = TC_CLKSEL_DIV8_gc;

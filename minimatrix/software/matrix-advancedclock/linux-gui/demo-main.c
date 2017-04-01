@@ -1,6 +1,6 @@
-/* Mouse-PC-Demo for MenuInterpreter
+/* PC-Demo for Advanced Clock
   Version 1.0
-  (c) 2010, 2012, 2015 by Malte Marwedel
+  (c) 2010, 2012, 2015, 2017 by Malte Marwedel
   Modified for Matrix-Simpleclock
   www.marwedels.de/malte
 
@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <sys/time.h>
 #include <GL/glut.h>
 
 //only for scroll wheel support:
@@ -118,21 +119,6 @@ void menu_screen_flush(void) {
 	}
 	glutSwapBuffers();
 	glFlush();
-#ifdef MENU_TEST_PROG
-	//simple way to guess a useful mapping for each screen
-	if (menu_key_enter > 0) {
-		usekeys[0] = usekeys[6] = menu_key_enter;
-	} else
-		usekeys[0] = usekeys[6] = 1;
-	if (menu_focus_key_next > 0) {
-		usekeys[8] = menu_focus_key_next;
-	} else
-		usekeys[8] = 4;
-	if (menu_focus_key_prev > 0) {
-		usekeys[7] = menu_focus_key_prev;
-	} else
-		usekeys[7] = 3;
-#endif
 }
 
 void menu_screen_clear(void) {
@@ -206,29 +192,46 @@ void input_mouse_move(int x, int y) {
 	}
 }
 
+void keypress(unsigned char key) {
+	printf("Call menu_keypress(%i)\n", key);
+	menu_keypress(key);
+}
+
 void input_key_special(int key, int x, int y) {
 	if (key == GLUT_KEY_LEFT) {
-		printf("Call menu_keypress(%i)\n", usekeys[5]);
-		menu_keypress(usekeys[5]);
+		keypress(usekeys[5]);
 	}
 	if (key == GLUT_KEY_RIGHT) {
-		printf("Call menu_keypress(%i)\n", usekeys[6]);
-		menu_keypress(usekeys[6]);
+		keypress(usekeys[6]);
 	}
 	if (key == GLUT_KEY_UP) {
-		printf("Call menu_keypress(%i)\n", usekeys[7]);
-		menu_keypress(usekeys[7]);
+		keypress(usekeys[7]);
 	}
 	if (key == GLUT_KEY_DOWN) {
-		printf("Call menu_keypress(%i)\n", usekeys[8]);
-		menu_keypress(usekeys[8]);
+		keypress(usekeys[8]);
 	}
 	if (key == GLUT_KEY_F2) {
-		menu_keypress(101); //show low bat warning
+		keypress(101); //show low bat warning
 	}
 	if (key == GLUT_KEY_F3) {
-		menu_keypress(102); //disable low bat warning
+		keypress(102); //disable low bat warning
 	}
+}
+
+void input_key_normal(unsigned char key, int x, int y) {
+	if (key == 'c') {
+		keypress(103); //decrease charging
+	}
+	if (key == 'C') {
+		keypress(104); //increase charging
+	}
+}
+
+static uint32_t gettimestamp(void) {
+	//this just shows the UTC, not the local time.
+	uint32_t t;
+	t = time(NULL);
+	return t - 946684800; //[seconds] since 1.1.2000
 }
 
 static void redraw(int param) {
@@ -240,10 +243,10 @@ static void redraw(int param) {
 		}
 		animategfx();
 	}
-	g_state.time = time(NULL) - 946684800; //[seconds] since 1.1.2000
+	//g_state.time = gettimestamp(); //comment out to test the manual date and time settings
 	g_state.timescache = g_state.time % 60;
 	g_state.timemcache = (g_state.time / 60) % 60;
-	g_state.timehcache = (g_state.time / (60*60)) % 60;
+	g_state.timehcache = (g_state.time / (60*60)) % 24;
 	if (g_dispUpdate) {
 		g_dispUpdate();
 	}
@@ -258,7 +261,7 @@ static void redraw(int param) {
 void init_window(void) {
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutInitWindowSize(dispx, dispy);
-	glutInitWindowPosition(100,20);
+	glutInitWindowPosition(100, 20);
 	glutCreateWindow("AdvancedClock PC GUI demo");
 	glutDisplayFunc(menu_screen_flush);
 	glutReshapeFunc(update_window_size);
@@ -286,10 +289,10 @@ void demo_init(void) {
 	g_settings.currentResCal = CURRENTRESCAL_NORMAL;
 	g_settings.consumptionLedOneMax = CONSUMPTIONLEDONEMAX_NORMAL;
 	g_settings.dcf77Level = DCF77LEVEL_NORMAL;
-	g_state.time = time(NULL) - 946684800; //[seconds] since 1.1.2000
+	g_state.time = gettimestamp();
 	g_state.timescache = g_state.time % 60;
 	g_state.timemcache = (g_state.time / 60) % 60;
-	g_state.timehcache = (g_state.time / (60*60)) % 60;
+	g_state.timehcache = (g_state.time / (60*60)) % 24;
 	g_state.ldr = 2048;
 	g_state.brightnessLdr = 100;
 	g_state.keyDebugAd = 700;
@@ -322,6 +325,7 @@ int main(int argc, char ** argv) {
 	glutMouseFunc(input_mouse_key);
 	glutPassiveMotionFunc(input_mouse_move);
 	glutSpecialFunc(input_key_special);
+	glutKeyboardFunc(input_key_normal);
 	glutMainLoop();
 	return 0;
 }

@@ -20,6 +20,16 @@
 
 #define RFM12_KEYQUEUESIZE 4
 
+/*
+Every data which should be stored in the EEPROM must be defined in settings_t.
+An additional CRC of the structure is stored there too.
+Every data which are state variabels (used for more than one iteration and
+therefore are not local variables of data given as function call arguments)
+and are used by more than one .c file should be stored in sysstate_t.
+So by default no variables needs to be defined as external somewhere (there are
+some exceptions).
+*/
+
 typedef struct {
 	/* Level of debug:
 		0: no rs232 out
@@ -133,8 +143,8 @@ typedef struct {
 	uint16_t ldr; //lower 14 bits: [AD] raw value, upper 2 bits: conversion resistor selected
 	uint8_t brightnessLdr; //current one if ldr would be used (before slow adjust)
 	uint8_t brightness; //current one really used
-	uint8_t brightDownCd; //[0.5 seconds] wait until brightness reduce is allowed again
-	uint8_t brightUpCd; //[0.5 seconds] wait until brightness increase is allowed again
+	uint8_t brightDownCd; //[0.125 seconds] wait until brightness reduce is allowed again
+	uint8_t brightUpCd; //[0.125 seconds] wait until brightness increase is allowed again
 	uint64_t consumption; //[µAs]
 	uint8_t dotsOn;      // number of dots of the display currently enabled
 	uint16_t keyDebugAd; //[AD] raw value converted value of key B
@@ -168,7 +178,14 @@ typedef struct {
 	uint8_t rfm12modeis; //0 = currently off, 1 = receiver currently on
 	uint16_t rfm12Cd; //[seconds] count down until device should be powered off
 	uint8_t powersaveenterstate; //state for the three edit fields. 0...1 for hour/minute edit 0...6 for weekday edit field
-	uint8_t powersaveEnabled; // 0 = disabled, 1 = enabled by timer, 2 = enabled by user. 3 = enabled by timer and user. If enabled, only enable display after an keypress for a short time
+/* powersaveEnabled
+	0 = disabled
+	bit0 = enabled by timer
+	bit1 = enabled by user
+  bit2 = enabled by critical low voltage
+  If enabled (at least one bit set), only enable display after an keypress for a short time.
+*/
+	uint8_t powersaveEnabled;
 	uint8_t pintesterrors; //1 = pintest detected errors, 0 = no errors or not run
 	uint8_t rfm12keyqueue[RFM12_KEYQUEUESIZE]; //keys from the rfm12 module
 	loggerstate_t logger;
