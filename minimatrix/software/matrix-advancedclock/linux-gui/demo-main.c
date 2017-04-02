@@ -298,6 +298,7 @@ void demo_init(void) {
 	g_state.keyDebugAd = 700;
 	g_state.gradcelsius10 = 123; //[1/10°C]
 	g_state.chargerCurrent = 10;
+	g_state.batteryCharged = 100*60*60; //100mAh
 	g_state.batVoltage = 3300;
 	g_state.performanceRcRunning = 100;
 	g_state.performanceCpuRunning = 25;

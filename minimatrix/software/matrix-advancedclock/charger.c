@@ -238,7 +238,7 @@ void charger_update(void) {
 	update_voltageAndCurrent();
 	uint8_t newstate = 0; //always off
 	uint32_t chargerMasMax = g_settings.batteryCapacity;
-	chargerMasMax *= (60*60); //mAh -> mAs
+	chargerMasMax *= (60UL*60UL); //mAh -> mAs
 	//--------------------- logic for determining the charger state --------------
 	if (g_settings.chargerMode == 2) { //always on
 		if (g_state.batteryCharged < (chargerMasMax*2)) {
@@ -251,8 +251,8 @@ void charger_update(void) {
 			g_settings.chargerMode = 0; //back to automatic, if charging is 2*MAX
 		}
 		if (g_state.batteryCharged > chargerMasMax) {
-			if (g_state.chargerCd < (60*60)) {
-				g_state.chargerCd = 60*60; //no automatic charging for at least one hour
+			if (g_state.chargerCd < (60UL*60UL)) {
+				g_state.chargerCd = 60UL*60UL; //no automatic charging for at least one hour
 			}
 		}
 	} else if (g_settings.chargerMode == 0) { //auto mode
@@ -262,8 +262,8 @@ void charger_update(void) {
 					if (g_state.chargerCd == 0) {
 						newstate = 1;
 					}
-				} else if (g_state.chargerCd < (60*60)) {
-					g_state.chargerCd = 60*60; //no charging for 1hour
+				} else if (g_state.chargerCd < (60UL*60UL)) {
+					g_state.chargerCd = 60UL*60UL; //no charging for 1hour
 				}
 			} else if (g_state.chargerCd < 60) {
 				//if critical current wait at least 60seconds before new charger try
@@ -296,7 +296,7 @@ void charger_update(void) {
 		if (g_state.chargerCharged60 > (int32_t)consumption60) {
 			//we have net income
 			uint32_t income60 = g_state.chargerCharged60 - consumption60; //[mAs]
-			if (income60 > (g_settings.batteryCapacity*30)) { //income60/60s -> mA, if mA > 0.5*C
+			if (income60 > (g_settings.batteryCapacity*30UL)) { //income60/60s -> mA, if mA > 0.5*C
 				efficiency = 128; //maximum efficiency
 			} else if (income60 < g_settings.batteryCapacity) { //income60/60s -> mA, if mA > 0.016*C
 				efficiency = 0;   //trickle charge, no net income
@@ -308,7 +308,7 @@ void charger_update(void) {
 				   eff = (income60*32)/(batteryCapacity*15) + 64;
 				   scale by two for more accurate results: term*2 + 64*2. Divieder 256
 				*/
-				efficiency = (income60*64)/(g_settings.batteryCapacity*15) + 128;
+				efficiency = (income60*64UL)/(g_settings.batteryCapacity*15UL) + 128;
 			}
 			g_state.batteryCharged += (income60 * (uint32_t)efficiency) / 256;
 		} else {
@@ -363,7 +363,7 @@ void charger_update(void) {
 	if (g_settings.debugRs232 == 7) {
 		char buffer[DEBUG_CHARS+1];
 		buffer[DEBUG_CHARS] = '\0';
-		uint16_t mah = g_state.batteryCharged/(60*60);
+		uint16_t mah = g_state.batteryCharged/(60UL*60UL);
 		snprintf_P(buffer, DEBUG_CHARS, PSTR("Charger: %umV %imA %i:%limAs %lumAs (%umAh) Mode:%u State:%u CoutDown:%u Idle:%u LoBat:%u eff:%u\r\n"),
 		  g_state.batVoltage, g_state.chargerCurrent,
 		  g_state.chargerCharged60iter, (long int)g_state.chargerCharged60,

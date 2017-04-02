@@ -1,5 +1,6 @@
 Advanced clock TODO:
 Display flicker                     -> Wont fix: still no idea why. But workaround can be enabled in debug menu (increases the power consumtion a little)
+                                                                    -> Workaround seems not to work on one device...
 Power save mode selectable          -> Done
 Power save mode for specific times  -> Done
 RC-5 Receiver                       -> Done

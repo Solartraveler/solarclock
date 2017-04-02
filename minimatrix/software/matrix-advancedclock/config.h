@@ -123,9 +123,9 @@ typedef struct {
 
 typedef struct {
 	uint8_t ksize;
-	uint16_t maxentries;
-	uint16_t nextentry;
-	uint32_t nextid;
+	uint16_t maxentries; //the maximum elements in the ring buffer
+	uint16_t nextentry; //the index in the ring buffer
+	uint32_t nextid; //the always incrementing ID for each log entry
 	uint8_t reportingmode; //0 = none, 1 = hex, 2 = human readable
 	uint16_t reportingindex; //we cant report everything in one cycle
 } loggerstate_t;

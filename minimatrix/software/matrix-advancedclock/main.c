@@ -623,10 +623,10 @@ static void updateDebugInput(void) {
 			rfm12_showstats();
 		}
 		if (c == 'c') {
-			menu_action(103); //decrease battery state by 1mAh
+			menu_keypress(103); //decrease battery state by 1mAh
 		}
 		if (c == 'C') {
-			menu_action(104); //increase battery state by 1mAh
+			menu_keypress(104); //increase battery state by 1mAh
 		}
 /* Test only:
 		if (c == 'h') {

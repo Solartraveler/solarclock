@@ -357,8 +357,8 @@ void logger_print_iter(void) {
 		if (timestart != rtc_8thcounter) {
 			break; //otherwise printing everything at once would take too long
 		}
-	} while (g_state.logger.reportingindex != g_state.logger.nextid);
-	if (g_state.logger.reportingindex == g_state.logger.nextid) {
+	} while (g_state.logger.reportingindex != g_state.logger.nextentry);
+	if (g_state.logger.reportingindex == g_state.logger.nextentry) {
 		g_state.logger.reportingmode = 0; //stop printing
 	}
 	i2ceep_disable();
@@ -370,6 +370,6 @@ void logger_print(uint8_t hr) {
 	} else {
 		g_state.logger.reportingmode = 1;
 	}
-	g_state.logger.reportingindex = g_state.logger.nextid;
+	g_state.logger.reportingindex = g_state.logger.nextentry;
 	logger_print_iter();
 }

@@ -1042,17 +1042,17 @@ static uint8_t flickerWorkaroundOn(void) {
 }
 
 static uint8_t chargerChargedDec(void) {
-	if (g_state.batteryCharged > 60*60) {
-		g_state.batteryCharged -= 60*60; //sub 1mAh
+	if (g_state.batteryCharged > 60UL*60UL) {
+		g_state.batteryCharged -= 60UL*60UL; //sub 1mAh
 	}
 	updateText();
 	return 1;
 }
 
 static uint8_t chargerChargedInc(void) {
-	uint32_t batmax = g_settings.batteryCapacity*60*60;
+	uint32_t batmax = g_settings.batteryCapacity*60UL*60UL;
 	if (g_state.batteryCharged < batmax) {
-		g_state.batteryCharged += 60*60; //add 1mAh
+		g_state.batteryCharged += 60UL*60UL; //add 1mAh
 	}
 	updateText();
 	return 1;
@@ -1069,7 +1069,7 @@ static uint8_t timeManualHourInc(void) {
 static uint8_t timeManualMinInc(void) {
 	g_state.timemcache++;
 	if (g_state.timemcache >= 60) g_state.timemcache = 0;
-	g_state.time = (((g_state.time / (60*60)) * 60) + g_state.timemcache)* 60L + g_state.timescache;
+	g_state.time = (((g_state.time / (60UL*60UL)) * 60UL) + g_state.timemcache)* 60L + g_state.timescache;
 	updateClockSetText();
 	return 1;
 }
