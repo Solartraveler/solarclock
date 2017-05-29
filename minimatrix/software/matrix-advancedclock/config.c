@@ -53,28 +53,12 @@ static uint8_t config_read_eep(void * addressconfigeep, uint16_t * addresscrceep
 	return 0;
 }
 
-static uint8_t config_read_eep_legacy(void * addressconfigeep, uint16_t * addresscrceep) {
-	eeprom_read_block(&g_settings, addressconfigeep, sizeof(settingsLegacy_t));
-	uint16_t crcShould = eeprom_read_word(addresscrceep);
-	uint16_t crcIs = calcCrc((uint8_t*)(&g_settings), sizeof(settingsLegacy_t));
-	if (crcIs == crcShould) {
-		return 1;
-	}
-	g_settings.debugRs232 = 1; //basic debug prints, no RX
-	return 0;
-}
-
 void config_load(void) {
 	g_settings.debugRs232 = 1; //basic debug prints, no RX
 	uint8_t success = config_read_eep(EEPROM_CONFIG_POS, EEPROM_CRC_POS);
 	if (!success) {
 		rs232_sendstring_P(PSTR("Reading backup settings...\r\n"));
 		success = config_read_eep(EEPROM_CONFIG_BACKUP_POS, EEPROM_CRC_BACKUP_POS);
-	}
-	//check for upgrade from old settings
-	if (!success) {
-		rs232_sendstring_P(PSTR("Reading legacy settings...\r\n"));
-		success = config_read_eep_legacy(EEPROM_CONFIG_LEGACY_POS, EEPROM_CRC_LEGACY_POS);
 	}
 	if (!success) {
 		rs232_sendstring_P(PSTR("New settings\r\n"));

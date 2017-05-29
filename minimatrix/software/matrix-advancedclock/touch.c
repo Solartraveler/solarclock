@@ -27,6 +27,7 @@
 #include <stdlib.h>
 
 #include "main.h"
+#include <util/delay.h>
 #include "touch.h"
 #include "rs232.h"
 #include "debug.h"
@@ -37,7 +38,7 @@
 
 void touch_sample(uint8_t channel, uint16_t * cha, uint16_t * chb) {
 	DEBUG_FUNC_ENTER(touch_sample);
-	uint16_t result = 0;
+	//uint16_t result = 0;
 	//configure i/o for discharge
 	PORTA.PIN2CTRL = PORT_OPC_TOTEM_gc;
 	PORTA.PIN3CTRL = PORT_OPC_TOTEM_gc;
@@ -80,9 +81,11 @@ void touch_sample(uint8_t channel, uint16_t * cha, uint16_t * chb) {
 		result++;
 	}
 */
-	_delay_loop_2(F_CPU/80000); //wait 50us
+	_delay_ms(0.02); //wait 20us
 	//reset to count up again
-	ACA_CTRLB = 50; //90% of Vcc
+	//ACA_CTRLB = 50; //90% of Vcc
+	//ACA_CTRLB = 31; //50% of Vcc
+	ACA_CTRLB = 15; //25% of Vcc (is a lot faster to measure)
 	//while ((ACA_STATUS & (AC_AC0STATE_bm | AC_AC1STATE_bm )));
 	ACA_STATUS = AC_AC0IF_bm | AC_AC1IF_bm; //clear interrupt flags
 	EVSYS.CH0MUX = EVSYS_CHMUX_ACA_CH0_gc; //analog comparator as source
@@ -97,10 +100,8 @@ void touch_sample(uint8_t channel, uint16_t * cha, uint16_t * chb) {
 	TOUCH_TIMER.CTRLA = TC_CLKSEL_DIV1_gc; //start counting
 	PORTA.OUTSET = 4; //start charging the caps
 	sei();
-	result = 0;
 	while (((TOUCH_TIMER.INTFLAGS & (TC1_CCAIF_bm | TC1_CCBIF_bm)) !=
-	       (TC1_CCAIF_bm | TC1_CCBIF_bm)) && (result < 3000)) {
-		result++;
+	       (TC1_CCAIF_bm | TC1_CCBIF_bm)) && (TOUCH_TIMER.CNT < 8000)) {
 	}
 	if (TOUCH_TIMER.INTFLAGS & TC1_CCAIF_bm) {
 		*cha = TOUCH_TIMER.CCA;
@@ -126,124 +127,72 @@ void touch_sample(uint8_t channel, uint16_t * cha, uint16_t * chb) {
 }
 
 
-int compareuint16(const void * pa, const void * pb) {
-	uint16_t a = *((uint16_t *)pa);
-	uint16_t b = *((uint16_t *)pb);
-	if (a > b) {
-		return 1;
-	}
-	if (a < b) {
-		return -1;
-	}
-	return 0;
-}
-
-#define SAMPLES 11
-#define HISTORYDEPTH 8
 #define CHANNELS 4
+#define SAMPLES 5
 
-uint8_t touch_test(void) {
-	static uint8_t historyindex = 0;
-	static uint16_t rawvalueshistory[CHANNELS][HISTORYDEPTH];
-	static uint8_t deadtime = 0;
-	uint16_t rawvaluestable[CHANNELS][SAMPLES];
+uint8_t touchKeysRead(void) {
+	uint16_t rawvaluestable[CHANNELS];
+	static uint16_t rawvaluestableHistory[CHANNELS] = {0,0,0,0};
+	static uint8_t safeUpdate[CHANNELS] = {255,255,255,255}; //limits continous press to 31secs and forces an update on first call
 	uint8_t i, j;
 	uint8_t result = 0;
-	for (i = 0; i < SAMPLES; i++) {
-/*
-		for (j = 0; j < CHANNELS/2; j++) {
-			touch_sample(j*2, &(rawvaluestable[j*2][i]), &(rawvaluestable[j*2+1][i]));
-		}
-*/
-		uint16_t dummy;
-		for (j = 0; j < CHANNELS; j++) {
-			touch_sample(j, &(rawvaluestable[j][i]), &dummy);
-		}
-	}
-	//get median value
-	for (i = 0; i < CHANNELS; i++) {
-		qsort(rawvaluestable[i], sizeof(uint16_t), SAMPLES, &compareuint16);
-		rawvalueshistory[i][historyindex] = rawvaluestable[i][SAMPLES/2];
-	}
 	//print current results
 	char buffer[64];
-
-#if CHANNELS == 8
-	sprintf(buffer, "AC: %05u %05u %05u %05u %05u %05u %05u %05u\r\n",
-	   rawvalueshistory[0][historyindex],
-	   rawvalueshistory[1][historyindex],
-	   rawvalueshistory[2][historyindex],
-	   rawvalueshistory[3][historyindex],
-	   rawvalueshistory[4][historyindex],
-	   rawvalueshistory[5][historyindex],
-	   rawvalueshistory[6][historyindex],
-	   rawvalueshistory[7][historyindex]);
-#elif CHANNELS == 4
-	sprintf(buffer, "AC: %05u %05u %05u %05u\r\n",
-	   rawvalueshistory[0][historyindex],
-	   rawvalueshistory[1][historyindex],
-	   rawvalueshistory[2][historyindex],
-	   rawvalueshistory[3][historyindex]);
-#elif CHANNELS == 3
-	sprintf(buffer, "AC: %05u %05u %05u\r\n",
-	   rawvalueshistory[0][historyindex],
-	   rawvalueshistory[1][historyindex],
-	   rawvalueshistory[2][historyindex]);
-#elif CHANNELS == 2
-	sprintf(buffer, "AC: %05u %05u\r\n",
-	   rawvalueshistory[0][historyindex],
-	   rawvalueshistory[1][historyindex]);
-#endif
-	rs232_sendstring(buffer);
-	//analyze result
-	uint8_t oklevel[CHANNELS];
-	if (deadtime == 0) {
-		uint8_t lowestok = HISTORYDEPTH;
-		uint8_t equalok = 0;
-		for (i = 0; i < CHANNELS; i++) {
-			int16_t historydelta[HISTORYDEPTH-1];
-			oklevel[i] = 0;
-			for (j = 0; j < HISTORYDEPTH-1; j++) {
-				historydelta[j] = rawvalueshistory[i][(historyindex + j) % HISTORYDEPTH] - rawvalueshistory[i][(historyindex + j + 1) % HISTORYDEPTH];
+	uint16_t raw0, raw1;
+	for (i = 0; i < CHANNELS; i++) {
+		rawvaluestable[i] = 0;
+	}
+	for (j = 0; j < SAMPLES; j++) {
+		for (i = 0; i < CHANNELS/2; i++) {
+			touch_sample(i*2, &raw0, &raw1);
+			if (rawvaluestable[i*2] < raw0) {
+				rawvaluestable[i*2] = raw0;
 			}
-			for (j = 0; j <  HISTORYDEPTH-1; j++) {
-				if ((historydelta[j] < 4) && (historydelta[j] > -4)) {
-					oklevel[i]++;
-				}
-			}
-			if (oklevel[i] < 5) {
-				if (oklevel[i] < lowestok) {
-					result = i+1;
-					deadtime = 6;
-					lowestok = oklevel[i];
-					equalok = 0;
-				} else if ((oklevel[i] == lowestok) && !((result-1 == 2) && (i == 2))) {
-					equalok = 1;
-				}
+			if (rawvaluestable[i*2+1] < raw1) {
+				rawvaluestable[i*2+1] = raw1;
 			}
 		}
-		if (equalok) { //cant decide which is lowest -> better next time
-			deadtime = 0;
-			result = 0;
-		}
-#if 0
+	}
+	if (g_settings.debugRs232 == 4) {
 #if CHANNELS == 4
-		sprintf(buffer, "%u %u %u %u\r\n",
-		(uint16_t)oklevel[0], (uint16_t)oklevel[1], (uint16_t)oklevel[2], (uint16_t)oklevel[3]);
+		sprintf(buffer, "AC: %05u %05u %05u %05u\r\n",
+		   rawvaluestable[0],
+		   rawvaluestable[1],
+		   rawvaluestable[2],
+		   rawvaluestable[3]);
 #elif CHANNELS == 3
-		sprintf(buffer, "%u %u %u\r\n", (uint16_t)oklevel[0], (uint16_t)oklevel[1], (uint16_t)oklevel[2]);
+		sprintf(buffer, "AC: %05u %05u %05u\r\n",
+		   rawvaluestable[0],
+		   rawvaluestable[1],
+		   rawvaluestable[2]);
 #elif CHANNELS == 2
-		sprintf(buffer, "%u %u\r\n", (uint16_t)oklevel[0], (uint16_t)oklevel[1]);
+		sprintf(buffer, "AC: %05u %05u\r\n",
+		   rawvaluestable[0],
+		   rawvaluestable[1]);
 #endif
 		rs232_sendstring(buffer);
-#endif
-	} else {
-		deadtime--;
 	}
-	//decrement history index buffer
-	if (historyindex == 0) {
-		historyindex = HISTORYDEPTH;
+	//Debug value for display:
+	g_state.keyDebugAd = rawvaluestable[1];
+	//analyze result
+	for (i = 0; i < CHANNELS; i++) {
+		if ((rawvaluestable[i] >  rawvaluestableHistory[i] + 250) &&
+				(rawvaluestable[i] <  rawvaluestableHistory[i] + 2000) &&
+			  (rawvaluestable[i] > 1000) && (rawvaluestable[i] < 10000) &&
+			  (safeUpdate[i] < 255)) {
+			result = i + 1;
+			safeUpdate[i]++;
+		} else {
+			rawvaluestableHistory[i] = rawvaluestable[i];
+			safeUpdate[i] = 0;
+		}
 	}
-	historyindex--;
+	if (result) {
+		if (g_settings.debugRs232) {
+			sprintf(buffer, "Pressed: %c\r\n", result + 'A' - 1);
+			rs232_sendstring(buffer);
+		}
+	}
 	return result;
 }
+

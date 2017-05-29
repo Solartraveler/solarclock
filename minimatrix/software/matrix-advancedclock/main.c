@@ -47,13 +47,7 @@
 #include "rc5decoder.h"
 #include "logger.h"
 #include "debug.h"
-
-#define IRKEYS
-
-#ifndef IRKEYS
-
 #include "touch.h"
-#endif
 
 
 settings_t g_settings; //permanent settings
@@ -441,7 +435,7 @@ static uint8_t irKeysRead(void) {
 #else
 	PORTA.PIN2CTRL = PORT_OPC_TOTEM_gc;
 	PORTA.DIRSET = 0x04;
-	PORTA.OUTCLR = 0x04;
+	PORTA.OUTCLR = 0x04; //the output is low active, enable IR LEDs
 #endif
 	_delay_us(50.0);
 	adca_startup();
@@ -449,7 +443,7 @@ static uint8_t irKeysRead(void) {
 #ifdef SLOW_RISING
 	PORTA.PIN2CTRL = PORT_OPC_PULLUP_gc;
 #else
-	PORTA.OUTSET = 0x04;
+	PORTA.OUTSET = 0x04; //disable IR LEDs
 #endif
 	adca_stop();
 	for (uint8_t i = 0; i < 4; i++) {
@@ -671,10 +665,13 @@ static void run8xS(uint8_t delayed) {
 		     ((g_state.dcf77ResyncTrytimeCd > (8*60*60)) || (g_state.timehcache > 3 ) || (g_state.timehcache < 2))) ||
 		    (g_state.time < (10*60)) ||
 		    (dcf77_is_enabled() == 0) || (g_state.soundEnabledCd)) {
-#ifdef IRKEYS
-			irKey = irKeysRead();
-#endif
+			if (g_state.irKeyUse) {
+				irKey = irKeysRead();
+			}
 		}
+	}
+	if (!g_state.irKeyUse) {
+		irKey = touchKeysRead();
 	}
 	//read in RC-5 key
 	uint8_t rc5key = rc5keyget();
@@ -731,9 +728,6 @@ static void run2xS(void) {
 	DEBUG_FUNC_ENTER(run2xS);
 	//update display brightness
 	update_display_brightnessMeasure();
-#ifndef IRKEYS
-	touch_test();
-#endif
 	DEBUG_FUNC_LEAVE(run2xS);
 }
 
@@ -943,13 +937,37 @@ static void resetcounter_increase(void) {
 	g_settings.reboots++;
 }
 
+//returns 1: ir keys to use, 0: touch keys to use
+static uint8_t input_detect(void) {
+	PORTA.PIN2CTRL = PORT_OPC_TOTEM_gc;
+	PORTA.DIRSET = 0x04; //PIN2
+	PORTA.OUTSET = 0x04; //IR is low active, touch is high active
+	//At IR, setting one input as low output will result in safe discharge of stray
+	PORTA.PIN3CTRL = PORT_OPC_PULLDOWN_gc;
+	//All other need to be inputs for measurement
+	PORTA.PIN4CTRL = PORT_OPC_TOTEM_gc;
+	PORTA.PIN5CTRL = PORT_OPC_TOTEM_gc;
+	PORTA.PIN6CTRL = PORT_OPC_TOTEM_gc;
+	waitms(10);
+	//If we read a high level now, we have a touch field
+	uint8_t inputvalues = PORTA.IN & 0x70;
+	PORTA.PIN3CTRL = PORT_OPC_TOTEM_gc;
+	if (inputvalues) {
+		rs232_sendstring_P(PSTR("Touch key input\r\n"));
+		return 0;
+	} else {
+		rs232_sendstring_P(PSTR("IR key input\r\n"));
+		return 1;
+	}
+}
+
 int main(void) {
 	pull_all_pins();
 	watchdog_enable();
 	power_setup();
 	disp_rtc_setup();
 	g_settings.debugRs232 = 1; //gets overwritten by config_load() anyway
-	rs232_sendstring_P(PSTR("Advanced-Clock V0.4\r\n"));
+	rs232_sendstring_P(PSTR("Advanced-Clock V0.5\r\n"));
 	config_load();
 	g_state.batteryCharged = g_settings.batteryCapacity;
 	g_state.batteryCharged *= (60*60);//mAh -> mAs
@@ -962,6 +980,7 @@ int main(void) {
 	loggerlog_bootup(g_settings.reboots, resetsource, g_debug, g_debugint);
 	g_debug = 0;
 	calibrate_start();
+	g_state.irKeyUse = input_detect();
 	if (g_settings.debugRs232 >= 2) {
 		rs232_rx_init();
 	}

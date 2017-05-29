@@ -11,11 +11,12 @@ Logger                              -> Done
 Reboot/runtime counter              -> Done
 Redundant config load/store         -> Done
 Crashes on keypress                 -> TODO (only observed when enabling of RC-5 decoder)
-Touch keys                          -> TODO
+Touch keys                          -> Done
 Smooth brightness adjust            -> Done (source of flicker while brightness reduce is likely caused by insufficient LED voltage regulation)
 Summer winter time adjust           -> Done
-DCF77 sync wait time adjustable     -> Done
+DCF77 sync wait time adjustable     -> TODO: Selecting 24h -> no sync at all. Everything else works.
 Logger status write time adjustable -> Done
 Manual time adjust                  -> Done
 Manual charger state adjust         -> Done
 Auto powersave on critical voltage  -> Done
+Calibration option for crystal      -> TODO

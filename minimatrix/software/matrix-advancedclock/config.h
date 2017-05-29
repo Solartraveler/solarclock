@@ -36,7 +36,7 @@ typedef struct {
 		1: basic messages
 		2: as 1 + control input
 		3. as 2 + brightness adjustment print
-		4. as 2 + IR key print
+		4. as 2 + IR key print or touch print
 		5. as 2 + DCF77 print (full minute sample)
 		6. as 2 + RFM12 print
 		7. as 2 + charger print
@@ -87,40 +87,6 @@ typedef struct {
 	uint8_t reserved[29]; //decrease if new settings get in, so no crc mismatch on next start
 } settings_t;
 
-//upgrade path from old settings to new stettings:
-typedef struct {
-	uint8_t debugRs232;
-	uint8_t alarmEnabled[ALARMS];  //0: Disabled, 1: Enabled
-	uint8_t alarmHour[ALARMS];     //0...23 [hours]
-	uint8_t alarmMinute[ALARMS];   //0...59 [minutes]
-	uint8_t alarmWeekdays[ALARMS];  //each bit one day of the week. lsb = monday
-	uint16_t timerMinutes; //[minutes]
-	uint8_t brightnessAuto; //0: Manual brightness control, 1: Automatic brightness control
-	uint8_t brightness;     //brighntess for manual brightness
-	uint8_t brightnessNoOff; //if 1, never go to brightness 0.
-	uint8_t clockShowSeconds; //[seconds]
-	uint8_t soundAutoOffMinutes; //[minutes]
-	uint8_t soundVolume;     //0: min, 255: max
-	uint16_t soundFrequency; //[Hz]
-	uint16_t displayRefresh; //[Hz]
-	uint8_t chargerMode; //0: auto, 1: off, 2: on (on gets converted to auto on startup)
-	uint16_t consumptionLedOneMax; //consuption in [µA] of one dot lighting 1/5 (5 lines) of the time
-	uint16_t batteryCapacity; //[mAh]
-	uint16_t currentResCal; //[10*mOhm] Calibrated value of the resistor (R46) for measuring the input current in 1/100 th of Ohm
-	uint16_t dcf77Level; //number of errors one sampled minute (38bit) might have
-	uint8_t rc5mode;     //0: off, 1: on for 5min if user entered something or beeper is enabled. 2: always on
-	uint16_t rc5codes[RC5KEYS]; //infrared code for key left, 0 = none, [0] = left, [1] = down, [2] = up, [3] = right
-	uint8_t rfm12mode;   //0: off, 1: on for 1min if user entered something or beeper is enabled. 2: 5min if user entered something or beeper is enabled, 3: always on
-	uint32_t reboots;    //number of power ups
-	uint32_t usageseconds; //number of seconds this device has run [seconds]
-	uint8_t powersaveHourStart; //standby starts when the time is equal to this value and the weekday fits [hours]
-	uint8_t powersaveMinuteStart; //standby starts when the time is equal to this value and the weekday fits [minutes]
-	uint8_t powersaveHourStop; //standby stops when the time is equal to this value [hours]
-	uint8_t powersaveMinuteStop;//standby stops when the time is equal to this value [minutes]
-	uint8_t powersaveWeekdays;  //each bit one day of the week. lsb = monday
-} settingsLegacy_t;
-
-
 typedef struct {
 	uint8_t ksize;
 	uint16_t maxentries; //the maximum elements in the ring buffer
@@ -147,11 +113,12 @@ typedef struct {
 	uint8_t brightUpCd; //[0.125 seconds] wait until brightness increase is allowed again
 	uint64_t consumption; //[µAs]
 	uint8_t dotsOn;      // number of dots of the display currently enabled
-	uint16_t keyDebugAd; //[AD] raw value converted value of key B
+	uint16_t keyDebugAd; //[AD] or [Cycles] Key B: raw value converted from AD when using IR or counted CPU ticks when using touch.
 	uint16_t gradcelsius10; //[1/10°C]
-	uint32_t dcf77ResyncCd; //count down in [seconds] until dcf77 resync starts, also saves settings
+	uint32_t dcf77ResyncCd; //count down in [seconds] until dcf77 resync starts
 	uint16_t dcf77ResyncTrytimeCd; //count down in [8*seconds] until resync is aborted
 	uint8_t dcf77Synced; //0: never synced, 1: synced.
+	uint8_t irKeyUse; //0: Use touch input keys 1: Use infrared input keys.
 	uint8_t irKeyCd; //count down in [1/8s]
 	uint8_t irKeyLast; //0: None, 1..4: The keys A...D
 	uint8_t displayNoOffCd; //do not switch display off if not zero [seconds] Set to 60s on keypress
