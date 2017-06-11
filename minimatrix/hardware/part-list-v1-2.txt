@@ -1,0 +1,92 @@
+This is the part list for schematic version 1.2.
+It is build on the patched PCB of version 1.0
+PCB1 is the main PCB with the matrix and ATxmega.
+PCB2 is the required extra PCB for the voltage limitation of the solar cell.
+PCB3 is the touch keys PCB.
+
+Number  Description              Part of:                                   Supplier     Order-number      approx price for 1x in Euro
+ 1x     24AA512P 32KB EEPROM     IC1                                        Reichelt     24AA512-I/P       1.85
+ 1x     Opamp MCP6051            IC2                                        Reichelt     MCP 6051T-E/OT    0.69
+ 1x     ATxmega 100QFP 64KB      IC3                                        Reichelt     ATXMEGA 64A1-AU   4.95
+ 1x     RFM12                    U$2                                        Pollin       810 049           4.95
+ 1x     MCP6042P                 PCB2:IC2A                                  Reichelt     MCP 6042-I/P      0.93
+ 1x     LPT80A Phototransistor   T1                                         Reichelt     LPT 80            0.70
+ 1x     Temperature Sensor       R1                                         Reichelt     KTY 81-221        0.57
+ 1x     47k 0805                 R2                                         Reichelt     SMD-0805 47,0K    0.03
+ 2x     220 0805                 R3, R4                                     Reichelt     SMD-0805 220      0.03
+ 6x     1000k 0805               R5, R38, PCB3:R13-R16                      Reichelt     SMD-0805 1,00M    0.03
+28x     Resistors for LEDs 27Ohm R6-R33                                     Reichelt     SMD-0805 27,0     0.015
+ 1x     33k 0805                 R34                                        Reichelt     SMD-0805 33,0K    0.03
+ 1x     Potentionmeter 100k      R35                                        Reichelt     PT 6-S 100K       0.24
+ 1x     110k 0805                R36                                        Reichelt     SPR-0805 110K     0.24
+ 3x     220k 0805                R37, R40, R41                              Reichelt     SMD-0805 220K     0.03
+ 2x     360k 0805                R42, R43                                   Reichelt     RND 0805 1 360K   0.02
+ 2x     100k 0805                R44, R45                                   Reichelt     SMD-0805 100K     0.03
+ 1x     2,2Ohm resistor          R46                                        Reichelt     2W METALL 2,2     0.13
+ 4x     100k 1206                PCB3:R9-R12                                Reichelt     RND 1206 1 100K   0.02
+ 1x     47k                      Patchfield                                 Reichelt     1/4W 47K          0.103
+ 1x     1k                       Patchfield                                 Reichelt     1/4W 1,0K         0.103
+ 1x     Poti 100k                PCB2:R1                                    Reichelt     PT 6-L 100K       0.27
+ 1x     100k                     PCB2:R2                                    Reichelt     1/4W 100K         0.103
+ 1x     240k                     PCB2:R3                                    Reichelt     1/4W 240K         0.103
+16x     Condensators 100nF 0805  C2, C3, C6-C9, C12-C17, C19, PCB3: C9-C11  Reichelt     X7R-G0805 100N    0.05
+ 2x     100µF 1206               C20, C21                                   Reichelt     X5R-G1206 100/6   0.34
+ 1x     47µF 1206                C22                                        Reichelt     X5R-G1206 47/6    0.20
+ 2x     100nF                    Patch between R35 and R36, PCB2:C1         Reichelt     X7R-2,5 100N      0.05
+ 4x     1nF 3000V                PCB3:C1-C4                                 Reichelt     X7R 1812 CN 1,0N  0.16
+ 4x     10nF 200V                PCB3:C5-C8                                 Reichelt     X7R 0805 CH 10N   0.04
+ 1x     1N5817-B                 D4                                         Reichelt     1N 5817           0.06
+ 2x     Z-Diode LM385Z-1.2       D5, PCB2:D1                                Reichelt     LM 385-Z1,2       0.39
+ 8x     SM6T36A                  PCB3:D1-D8                                 Reichelt     P6SMB 36A SMD     0.17
+ 4x     7x5 red   TA07-11SURKWA  LED1-LED4                                  RS           719-2572          2.31
+ 8x     IRLML6402PbF P-Mosfet    Q3-Q10                                     Reichelt     IRLML 6402        0.15
+ 2x     BSS138       N-Mosfet    Q11, Q12                                   Reichelt     BSS 138 SMD       0.04
+ 1x     IRLZ34N                  PCB2:Q1                                    Reichelt     IRLZ 34N          0.45
+ 1x     Oscillator 32kHz         Q2                                         Reichelt     0,032768          0.12
+ 1x     Fuse with Socket 250mA   U$3                                        Reichelt     SMD-HASF 0,25A    1.10
+ 1x     Pin header 2x3           SV1                                        Reichelt     MPE 087-2-006     0.14
+ 1x     Plug connector 6pin      SV2                                        Reichelt     MPE 094-1-006     0.21
+ 2x     Plug connector 3pin      SV4, and with wire on SV4                  Reichelt     MPE 094-1-003     0.13
+ 1x     Pin header 1x6           split: PCB3: SV1, with wire on PCB3:Pad1   Reichelt     MPE 087-1-007     0.16
+ 5x     Screwed connection       J1 - J4, PCB2:J1                           Reichelt     AKL 059-02        0.24
+ 1x     NIMH AA 2er pack                                                    Reichelt     ENELOOP 2XAA      5.40
+ 1x     Battery holder           connect to J2                              Reichelt     HALTER 2XAAZ      0.35
+ 1x     Speaker                  connect to J3                              Reichelt     BL 28             1.50
+ 1x     DCF77 receiver           connect to SV4                             ELV          68-09 16 10       9.95
+ 1x     Solarcell 200mA-250mA 4V connect to J1                              Ebay                          ~9.00
+ 1x     PCB production           PCB1                                       Platinensammler.de            31.72
+ 1x     PCB production           PCB2, PCB3                                 electrow.com                 ~10.00
+                                                                                                   Sum: ~103.78€
+ 1x     Some wire/strand for Solar cell, batteries, speaker and DCF77 connector
+ 1x     Some case
+ 1x     Some glass or acrylic glass for the solar cell
+ 1x     Some transparent-red acrylic glass for the display
+ 4x     Small metal plates as touch buttons (for example use 4mm screws)
+ 1x     Some PB-free tin-solder
+ 1x     Some heat shrink tube
+ 1x     Some hot glue
+ 6x     Shipping for Reichelt, Pollin, RS, ELV, Platinensammler or electrow.com, acrylic glass           ~5.00
+
+Possible changes in options from the list above:
+A: Remove RFM12
+   U$2 and C3 100nF not needed
+B: Remove Logger
+   IC1 and C6 100nF not needed
+C: Remove Beeper
+   C22, Q10, Q12, R41, J1, Speaker not needed
+D: Reduce batteries from AA to AAA and select other battery holder.
+   Make sure allowed charging current is higher or equal the maximum current of the solar cell.
+E: Increase or decrease solar cell. If increasing to > 250mA, add a current limiting polyfuse.
+   to make sure the batteries are not fast overcharged in the case of software/hardware failure.
+F: Instead of the red matrix LEDs (LED1-LED4), orange or green parts can be used:
+   orange: TA07-11SEKWA
+   green:  TA07-11CGKWA
+G: A IR receiver can be added:
+   Add 1x 100nF 0805 (C1) and 1x TSOP 31238 (IR1)
+H: The wires can be directly soldered to the PCB, remove all "Screwed connection" J1-J4, PCB2:J1
+I: Instead of the touch buttons, the IR buttons (ir-sensorboard PCB) can be used:
+   Remove all parts for PCB3, Add PCB4.
+   Add 1x IRML6402, 4x 39 0805, 4x 47k 0805, 4x SG2BC
+J: The LEDs and the EEprom can be placed in a socket (testing different colors etc)
+   Add 4x Socket DIL 14, 1x Socket DIL 8
+   Placing the LEDs into a socket is recommend as it helps equaling the height of them to the touch buttons.
