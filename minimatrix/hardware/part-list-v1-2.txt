@@ -81,7 +81,7 @@ E: Increase or decrease solar cell. If increasing to > 250mA, add a current limi
 F: Instead of the red matrix LEDs (LED1-LED4), orange or green parts can be used:
    orange: TA07-11SEKWA
    green:  TA07-11CGKWA
-G: A IR receiver can be added:
+G: An IR receiver can be added:
    Add 1x 100nF 0805 (C1) and 1x TSOP 31238 (IR1)
 H: The wires can be directly soldered to the PCB, remove all "Screwed connection" J1-J4, PCB2:J1
 I: Instead of the touch buttons, the IR buttons (ir-sensorboard PCB) can be used:

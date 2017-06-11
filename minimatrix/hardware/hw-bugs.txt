@@ -56,3 +56,6 @@ The changes are documented in version 1.1 and 1.2, however no such new PCB has b
 ==touch-sensor==
 17. The Diodes D1-D8 in the PCB are difficult to solder when C1-C4 are already soldered.
    Workaround: Solder D1-D8 before soldering C1-C4.
+==Voltage limit==
+18. The 75k potentiometer is difficult to buy.
+   Workaround: Use 100k

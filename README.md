@@ -22,3 +22,4 @@ If connected to an external RS232 level converter (19200 baud, no parity,
 no extra stop bits, no flowcontrol), and enabled RS232 in the debug
 menu, the real clock can be controlled with the w-a-s-d keys over the serial port too.
 
+![alt text](minimatrix/images/prototype-running.jpg "Version 1.2 without a case")
