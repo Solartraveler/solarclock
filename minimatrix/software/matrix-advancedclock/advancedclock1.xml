@@ -292,7 +292,7 @@
     <label Xpos="0" Ypos="0" font="14" text="Volt in" number="1" multilang="0" storagemethod="0"/>
     <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
     <shortcut action="" number="3" screen="window 51" shortcutkey="2"/>
-    <shortcut action="" number="4" screen="window 116" shortcutkey="3"/>
+    <shortcut action="" number="4" screen="window 120" shortcutkey="3"/>
     <shortcut action="ShowVoltageOn" number="5" screen="window 11" shortcutkey="4"/>
   </window>
   <window number="51" comment="MD - Current" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
@@ -452,9 +452,23 @@
   <window number="116" comment="MD - Date manual set" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="15" text="Man Dat" number="1" multilang="0" storagemethod="0"/>
     <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
-    <shortcut action="" number="3" screen="window 1" shortcutkey="2"/>
+    <shortcut action="" number="3" screen="window 118" shortcutkey="2"/>
     <shortcut action="" number="4" screen="window 114" shortcutkey="3"/>
     <shortcut action="ShowDateOn" number="5" screen="window 117" shortcutkey="4"/>
+  </window>
+  <window number="118" comment="MD - Clock calibrate" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="15" text="Clock cali" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 120" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 116" shortcutkey="3"/>
+    <shortcut action="ShowDateOn" number="5" screen="window 119" shortcutkey="4"/>
+  </window>
+  <window number="120" comment="MD - Test Patterns" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="15" text="Test pat" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 1" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 118" shortcutkey="3"/>
+    <shortcut action="" number="5" screen="window 121" shortcutkey="4"/>
   </window>
   <window number="11" comment="D - Show voltage&#xA;of the input" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="InputVoltage" number="1" multilang="0" storagemethod="1"/>
@@ -569,6 +583,22 @@
     <shortcut action="DateManualDayInc" number="3" screen="" shortcutkey="2"/>
     <shortcut action="DateManualMonthInc" number="4" screen="" shortcutkey="3"/>
     <shortcut number="5" shortcutkey="4" action="DateManualYearInc" screen=""/>
+  </window>
+  <window number="119" comment="D - Clock calibrate" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="ClockCalibrate" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 118" shortcutkey="1"/>
+    <shortcut action="ClockCalibDec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="ClockCalibInc" number="4" screen="" shortcutkey="3"/>
+    <shortcut number="5" shortcutkey="4" action="ClockCalibAuto" screen=""/>
+  </window>
+  <window number="121" comment="D - All dots on" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <box number="4" Xpos="0" Ypos="0" focusable="0" Xsize="28" Ysize="5" color="1" action="" screen=""/>
+    <shortcut action="" number="2" screen="window 120" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 122" shortcutkey="2"/>
+  </window>
+  <window number="122" comment="D - All dots off" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <shortcut action="" number="2" screen="window 120" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 121" shortcutkey="2"/>
   </window>
   <subwindow Xpos="0" Ypos="0" Xsize="29" Ysize="6" number="56" comment="Battery low" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="BatLow" number="1" multilang="0" storagemethod="0"/>

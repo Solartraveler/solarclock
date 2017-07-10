@@ -22,6 +22,7 @@
 #include <util/delay_basic.h>
 #include <string.h>
 #include <stdio.h>
+#include <avr/cpufunc.h>
 
 #include "displayRtc.h"
 #include "main.h"
@@ -63,7 +64,7 @@ volatile uint16_t disp_rtc_comp; //copy of RTC.COMP
 
 volatile uint8_t rtc_8thcounter;
 
-#define DISP_RTC_PER (F_RTC/8)-1 //no need for volatile, because only written on init
+uint16_t disp_rtc_per = DISP_RTC_PER; //this is adjusted slightly by +-1 for increasing precision
 
 uint8_t const disp_linebits[7] = {0, (1<<4), (1<<5), (1<<6), (1<<7), (1<<6), 0};
 
@@ -154,8 +155,8 @@ static void disp_update_line(void) {
 		rtccomp = RTC.CNT + 5;
 	}
 */
-	if (rtccomp >= DISP_RTC_PER) {
-		rtccomp -= DISP_RTC_PER;
+	if (rtccomp >= disp_rtc_per) {
+		rtccomp -= disp_rtc_per;
 	}
 	while(RTC_STATUS & RTC_SYNCBUSY_bm);
 	RTC.COMP = rtccomp;
@@ -338,7 +339,7 @@ uint8_t disp_rtc_setup(void) {
 		disp_configure_set(10, 100); //sets the interrupt level for the compare interrupt
 		CLK_RTCCTRL = CLK_RTCSRC_TOSC32_gc | CLK_RTCEN_bm;
 		while(RTC_STATUS & RTC_SYNCBUSY_bm);
-		RTC_PER = DISP_RTC_PER;
+		RTC_PER = disp_rtc_per;
 		disp_rtc_comp = 10; //some dummy init value
 		RTC_COMP = 10; //some dummy init value
 		RTC_CTRL = RTC_PRESCALER_DIV1_gc;
@@ -393,3 +394,17 @@ void rtc_waitsafeoff(void) {
 	}
 }
 #endif
+
+
+//+1, +2 count slower, -1 , -2 count faster, 0 count as expected
+void rtc_finecalib(int8_t direction) {
+	if (disp_rtc_per != DISP_RTC_PER + direction) {
+		while (RTC.CNT > DISP_RTC_PER / 2); //so we can do the update without getting into trouble
+		cli();
+		while(RTC_STATUS & RTC_SYNCBUSY_bm);
+		disp_rtc_per = DISP_RTC_PER + direction;
+		RTC_PER = disp_rtc_per;
+		_MemoryBarrier();
+		sei();
+	}
+}

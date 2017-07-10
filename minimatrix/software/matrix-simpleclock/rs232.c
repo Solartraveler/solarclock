@@ -86,7 +86,7 @@ void rs232_rx_init(void) {
 	rs232_sendstring_P(PSTR("RX enabled\r\n"));
 	g_rs232userx = 1;
 	rs232_tx_init();
-	RS232_PORT.RS232_RX_PIN = PORT_OPC_TOTEM_gc;
+	RS232_PORT.RS232_RX_PIN = PORT_OPC_PULLDOWN_gc; //otherwise a disconnected input gets garbage
 	USART.CTRLB |= USART_RXEN_bm;
 }
 

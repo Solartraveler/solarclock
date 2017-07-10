@@ -100,18 +100,26 @@ void touch_sample(uint8_t channel, uint16_t * cha, uint16_t * chb) {
 	TOUCH_TIMER.CTRLA = TC_CLKSEL_DIV1_gc; //start counting
 	PORTA.OUTSET = 4; //start charging the caps
 	sei();
-	while (((TOUCH_TIMER.INTFLAGS & (TC1_CCAIF_bm | TC1_CCBIF_bm)) !=
-	       (TC1_CCAIF_bm | TC1_CCBIF_bm)) && (TOUCH_TIMER.CNT < 8000)) {
+	if (chb) {
+		while (((TOUCH_TIMER.INTFLAGS & (TC1_CCAIF_bm | TC1_CCBIF_bm)) !=
+		       (TC1_CCAIF_bm | TC1_CCBIF_bm)) && (TOUCH_TIMER.CNT < 8000)) {
+		}
+	} else {
+		while (((TOUCH_TIMER.INTFLAGS & TC1_CCAIF_bm) != TC1_CCAIF_bm) &&
+		       (TOUCH_TIMER.CNT < 8000)) {
+		}
 	}
 	if (TOUCH_TIMER.INTFLAGS & TC1_CCAIF_bm) {
 		*cha = TOUCH_TIMER.CCA;
 	} else {
 		*cha = 0xFFFF;
 	}
-	if (TOUCH_TIMER.INTFLAGS & TC1_CCBIF_bm) {
-		*chb = TOUCH_TIMER.CCB;
-	} else {
-		*chb = 0xFFFF;
+	if (chb) {
+		if (TOUCH_TIMER.INTFLAGS & TC1_CCBIF_bm) {
+			*chb = TOUCH_TIMER.CCB;
+		} else {
+			*chb = 0xFFFF;
+		}
 	}
 	//start discharging the cap
 	ACA_AC0CTRL = 0;
@@ -129,6 +137,13 @@ void touch_sample(uint8_t channel, uint16_t * cha, uint16_t * chb) {
 
 #define CHANNELS 4
 #define SAMPLES 5
+#define REQREPEATS 2
+
+
+/* Approx 40 difference when not grounded
+   approx 400 difference when grounded
+*/
+#define DETECTIONLEVEL 30
 
 uint8_t touchKeysRead(void) {
 	uint16_t rawvaluestable[CHANNELS];
@@ -176,7 +191,7 @@ uint8_t touchKeysRead(void) {
 	g_state.keyDebugAd = rawvaluestable[1];
 	//analyze result
 	for (i = 0; i < CHANNELS; i++) {
-		if ((rawvaluestable[i] >  rawvaluestableHistory[i] + 250) &&
+		if ((rawvaluestable[i] >  rawvaluestableHistory[i] + DETECTIONLEVEL) &&
 				(rawvaluestable[i] <  rawvaluestableHistory[i] + 2000) &&
 			  (rawvaluestable[i] > 1000) && (rawvaluestable[i] < 10000) &&
 			  (safeUpdate[i] < 255)) {
@@ -188,9 +203,26 @@ uint8_t touchKeysRead(void) {
 		}
 	}
 	if (result) {
-		if (g_settings.debugRs232) {
-			sprintf(buffer, "Pressed: %c\r\n", result + 'A' - 1);
-			rs232_sendstring(buffer);
+		uint8_t index = result - 1;
+		uint8_t abovelevel = 1;
+		//verify keypress to avoid detecting noise as keypress
+		for (i = 0; i < REQREPEATS; i++) {
+			uint8_t detected = 0;
+			for (j = 0; j < SAMPLES; j++) {
+				touch_sample(index, &raw0, NULL);
+				if ((raw0 > rawvaluestableHistory[index] + DETECTIONLEVEL) && (detected == 0)) {
+					abovelevel++;
+					detected = 1;
+				}
+			}
+		}
+		if (abovelevel > REQREPEATS) { //we had one level from the first measurement
+			if (g_settings.debugRs232) {
+				sprintf(buffer, "Pressed: %c\r\n", result + 'A' - 1);
+				rs232_sendstring(buffer);
+			}
+		} else {
+			result = 0; //sorry, false alert
 		}
 	}
 	return result;

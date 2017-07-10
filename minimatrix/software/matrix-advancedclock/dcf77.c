@@ -237,22 +237,49 @@ static uint8_t dcf77_analyze(uint8_t startindex) {
 		                 (uint32_t)minute*60 +
 		                 (uint32_t)hour*60*60 +
 		                 (DCF77DATAMINUTES-1) * SECONDSINMINUTE - 1);
-		if (g_settings.debugRs232 == 0xB) {
-			uint16_t dof = dayofyear(day-1, month-1, year2digit);
-			snprintf_P(buffer, DEBUG_CHARS, PSTR("dof=%i utime=%lu\r\n"), dof, (long unsigned)utime);
-			rs232_sendstring(buffer);
+		//second verify, as there are sometimes still wrong times getting through the check (P<0.5%)
+		int32_t errorBetweenSync = utime - g_state.time;
+		if ((g_state.dcf77Synced == 0) ||
+		    ((errorBetweenSync > -60) && (errorBetweenSync < 60)) ||
+		     (errorrate <= ((g_settings.dcf77Level *4 / 5) * DCF77DATAMINUTES))) { //if already synced, time delta must be small or extra low error (80% of common one)
+			if (g_settings.debugRs232 == 0xB) {
+				uint16_t dof = dayofyear(day-1, month-1, year2digit);
+				snprintf_P(buffer, DEBUG_CHARS, PSTR("dof=%i utime=%lu\r\n"), dof, (long unsigned)utime);
+				rs232_sendstring(buffer);
+			}
+			loggerlog_synced(utime, errorrate);
+			if ((utime > g_state.timeStampLastSync) &&
+			    (g_state.dcf77Synced)) {
+				if ((errorBetweenSync > -30) && (errorBetweenSync < 30)) {
+					uint32_t secondsBetweenSync = utime - g_state.timeStampLastSync;
+					if (secondsBetweenSync) {
+						int32_t dayDeltaMs = errorBetweenSync * (24L*60L*60L*100L) / (int32_t)secondsBetweenSync; //mul by 1000 would result in a int32 overflow
+						dayDeltaMs *= 10;
+						if (g_settings.debugRs232 == 0xB) {
+							snprintf_P(buffer, DEBUG_CHARS, PSTR("errorSync =%li DeltaLastSync=%lu, Error=%lims/d\r\n"), (long)errorBetweenSync, (unsigned long)secondsBetweenSync, (long)dayDeltaMs);
+							rs232_sendstring(buffer);
+						}
+						dayDeltaMs += g_state.timeLastDelta;
+						if ((dayDeltaMs >= TIMECALIB_MIN) && (dayDeltaMs <= TIMECALIB_MAX)) {
+							g_state.timeLastDelta = dayDeltaMs;
+						}
+					}
+				}
+			}
+			g_state.time = utime;
+			g_state.timeStampLastSync = utime;
+			g_state.timescache = g_state.time % 60;
+			g_state.timemcache = (g_state.time / 60) % 60;
+			g_state.timehcache = (g_state.time / (60*60)) % 24;
+			g_state.dcf77Synced = 1;
+			//normally ignore summertime bits, but use it for the one undefined hour in the year
+			//bit 17 = 1 for summertime, bit 18 = for winter time.
+			uint8_t dcfsayssummertime = d77x(startindex, 17, DCF77DATAMINUTES - 1) > d77x(startindex, 18, DCF77DATAMINUTES - 1) ? 1 : 0;
+			g_state.summertime = isSummertime(utime, dcfsayssummertime);
+			updated = 1;
+			g_state.accumulatedErrorCycles = 0;
+			g_state.badCyclesRoundingError = 0;
 		}
-		loggerlog_synced(utime, errorrate);
-		g_state.time = utime;
-		g_state.timescache = g_state.time % 60;
-		g_state.timemcache = (g_state.time / 60) % 60;
-		g_state.timehcache = (g_state.time / (60*60)) % 24;
-		g_state.dcf77Synced = 1;
-		//normally ignore summertime bits , but use it for the one undefined hour in the year
-		//bit 17 = 1 for summertime, bit 18 = for winter time.
-		uint8_t dcfsayssummertime = d77x(startindex, 17, DCF77DATAMINUTES - 1) > d77x(startindex, 18, DCF77DATAMINUTES - 1) ? 1 : 0;
-		g_state.summertime = isSummertime(utime, dcfsayssummertime);
-		updated = 1;
 	}
 	return updated;
 }

@@ -382,6 +382,7 @@ static void updateText(void) {
 	sprintf_P((char*)menu_strings[MENU_TEXT_Rebootcounter], PSTR("%lu"), (long)g_settings.reboots);
 	sprintf_P((char*)menu_strings[MENU_TEXT_Dcf77Period], PSTR("D P: %ih"), g_settings.dcf77Period);
 	sprintf_P((char*)menu_strings[MENU_TEXT_LoggerPeriod], PSTR("L P: %ih"), g_settings.loggerPeriod);
+	sprintf_P((char*)menu_strings[MENU_TEXT_ClockCalibrate], PSTR("%ims/d"), g_settings.timeCalib);
 	if (g_settings.clockShowSeconds) {
 		sprintf_P((char*)menu_strings[MENU_TEXT_ShowSecs], PSTR("Sec On"));
 	} else {
@@ -1141,6 +1142,28 @@ static uint8_t dateManualYearInc(void) {
 	return 1;
 }
 
+static uint8_t clockCalibInc(void) {
+	if (g_settings.timeCalib < TIMECALIB_MAX) {
+		g_settings.timeCalib += -(g_settings.timeCalib % 50) + 50;
+	}
+	updateText();
+	return 1;
+}
+
+static uint8_t clockCalibDec(void) {
+	if (g_settings.timeCalib > TIMECALIB_MIN) {
+		g_settings.timeCalib -= (g_settings.timeCalib % 50) + 50;
+	}
+	updateText();
+	return 1;
+}
+
+static uint8_t clockCalibAuto(void) {
+	g_settings.timeCalib = g_state.timeLastDelta;
+	updateText();
+	return 1;
+}
+
 
 unsigned char menu_action(unsigned short action) {
 	unsigned char redraw = 0;
@@ -1246,6 +1269,9 @@ unsigned char menu_action(unsigned short action) {
 		case MENU_ACTION_DateManualDayInc:   redraw = dateManualDayInc(); break;
 		case MENU_ACTION_DateManualMonthInc: redraw = dateManualMonthInc(); break;
 		case MENU_ACTION_DateManualYearInc:  redraw = dateManualYearInc(); break;
+		case MENU_ACTION_ClockCalibDec:      redraw = clockCalibDec(); break;
+		case MENU_ACTION_ClockCalibInc:      redraw = clockCalibInc(); break;
+		case MENU_ACTION_ClockCalibAuto:     redraw = clockCalibAuto(); break;
 	}
 	if (g_dispUpdate) {
 		g_dispUpdate();

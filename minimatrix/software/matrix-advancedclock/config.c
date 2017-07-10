@@ -87,6 +87,7 @@ void config_load(void) {
 		g_settings.dcf77Period = 6;
 		g_settings.loggerPeriod = 4;
 		g_settings.flickerWorkaround = 0;
+		g_settings.timeCalib = 0;
 	} else {
 		rs232_sendstring_P(PSTR("Valid settings in EEPROM\r\n"));
 		//validate value ranges
@@ -103,7 +104,7 @@ void config_load(void) {
 			g_settings.soundFrequency = 100;
 		}
 		if (g_settings.debugRs232 > 15) {
-			g_settings.debugRs232 = 1;
+			g_settings.debugRs232 = 2;
 		}
 		if (g_settings.chargerMode > 1) {
 			g_settings.chargerMode = 0; //switches charger from ON to Auto for saftety reason
@@ -161,6 +162,9 @@ void config_load(void) {
 		}
 		if (g_settings.flickerWorkaround > 1) {
 			g_settings.flickerWorkaround = 1;
+		}
+		if ((g_settings.timeCalib > TIMECALIB_MAX) || (g_settings.timeCalib < TIMECALIB_MIN)) {
+			g_settings.timeCalib = 0;
 		}
 	}
 }

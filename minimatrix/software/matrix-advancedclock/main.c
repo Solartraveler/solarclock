@@ -48,6 +48,7 @@
 #include "logger.h"
 #include "debug.h"
 #include "touch.h"
+#include "finecalib.h"
 
 
 settings_t g_settings; //permanent settings
@@ -622,12 +623,19 @@ static void updateDebugInput(void) {
 		if (c == 'C') {
 			menu_keypress(104); //increase battery state by 1mAh
 		}
-/* Test only:
-		if (c == 'h') {
-			const char * buffer = PSTR("Hello world\n\r");
-			rfm12_sendP(buffer, strlen_P(buffer));
+		if (c == 'p') {
+			g_state.printPing = 0;
 		}
-*/
+		if (c == 'P') {
+			g_state.printPing = 1;
+		}
+		if (c == 'h') {
+			rs232_sendstring_P(PSTR("w a s d: Key input\n\r"));
+			rs232_sendstring_P(PSTR("L l:     Output log\n\r"));
+			rs232_sendstring_P(PSTR("m:       RFM12 stats\n\r"));
+			rs232_sendstring_P(PSTR("C c:     modify battery state\n\r"));
+			rs232_sendstring_P(PSTR("P p:     Ping on/off\n\r"));
+		}
 		if (c > 0) {
 			g_state.displayNoOffCd = 60;
 		}
@@ -643,7 +651,7 @@ static void run8xS(uint8_t delayed) {
 	if (dcf77_is_enabled()) {
 		if (dcf77_update()) {
 			dcf77_disable();
-			g_state.dcf77ResyncCd = 60*60*g_settings.dcf77Period; //some hours to next sync
+			g_state.dcf77ResyncCd = 60UL*60UL*(unsigned long)g_settings.dcf77Period; //some hours to next sync
 			menu_keypress(100); //auto switch to clock, when in dcf77 view
 		}
 		if (g_state.dcf77ResyncTrytimeCd) {
@@ -655,22 +663,21 @@ static void run8xS(uint8_t delayed) {
 	}
 	//read in IR key sensors
 	uint8_t irKey = 0;
-	if (dcf77_is_idle()) { //reduce noise (do not measure while bit comes in)
-		/*if we never synced, and tried for more than 10minutes and if no key
-		  press is required to stop sound, disable keys completely until we got
-		  sync.
-		  If we synced, but tried already more than one hour, we disable keys between 2:00 and 3:59 to reduce noise again.
-		*/
-		if (((g_state.dcf77Synced) &&
-		     ((g_state.dcf77ResyncTrytimeCd > (8*60*60)) || (g_state.timehcache > 3 ) || (g_state.timehcache < 2))) ||
-		    (g_state.time < (10*60)) ||
-		    (dcf77_is_enabled() == 0) || (g_state.soundEnabledCd)) {
-			if (g_state.irKeyUse) {
+	if (g_state.irKeyUse) {
+		if (dcf77_is_idle()) { //reduce noise (do not measure infrared key while bit comes in)
+			/*if we never synced, and tried for more than 10minutes and if no key
+			  press is required to stop sound, disable keys completely until we got
+			  sync.
+			  If we synced, but tried already more than one hour, we disable keys between 2:00 and 4:59 to reduce noise again.
+			*/
+			if (((g_state.dcf77Synced) &&
+			     ((g_state.dcf77ResyncTrytimeCd > (8*60*60)) || (g_state.timehcache > 4 ) || (g_state.timehcache < 2))) ||
+			    (g_state.time < (10*60)) ||
+			    (dcf77_is_enabled() == 0) || (g_state.soundEnabledCd)) {
 				irKey = irKeysRead();
 			}
 		}
-	}
-	if (!g_state.irKeyUse) {
+	} else {
 		irKey = touchKeysRead();
 	}
 	//read in RC-5 key
@@ -746,7 +753,7 @@ static void update_performance(void) {
 	g_state.performanceRcRunning = percRc;
 	g_state.performanceCpuRunning = percCpu;
 	//debug keep alive
-	if (g_settings.debugRs232 >= 1) {
+	if ((g_settings.debugRs232 >= 1) && (g_state.printPing)) {
 		char buffer[DEBUG_CHARS+1];
 		buffer[DEBUG_CHARS] = '\0';
 		snprintf_P(buffer, DEBUG_CHARS, PSTR("Ping R:%u%% C:%u%%\r\n"), (uint16_t)percRc * 100 /256, (uint16_t)percCpu * 100 /256);
@@ -830,6 +837,7 @@ static void updatePowerSaving(void) {
 static void run1xM(void) {
 	updateAlarm();
 	updatePowerSaving();
+	updateFineCalib();
 }
 
 //run 1 times per second
@@ -864,6 +872,14 @@ static void run1xS(void) {
 	if (g_state.displayNoOffCd) {
 		g_state.displayNoOffCd--;
 	}
+
+#if 0
+	char buffer[DEBUG_CHARS+1];
+	buffer[DEBUG_CHARS] = '\0';
+	snprintf_P(buffer, DEBUG_CHARS, PSTR(" Resync in: %lu\r\n"), (unsigned long)g_state.dcf77ResyncCd);
+	rs232_sendstring(buffer);
+#endif
+
 	//calc time to dcf77 resync
 	if (g_state.dcf77ResyncCd) {
 		g_state.dcf77ResyncCd--;
@@ -952,6 +968,7 @@ static uint8_t input_detect(void) {
 	//If we read a high level now, we have a touch field
 	uint8_t inputvalues = PORTA.IN & 0x70;
 	PORTA.PIN3CTRL = PORT_OPC_TOTEM_gc;
+	PORTA.DIRCLR = 0x04; //PIN2. Otherwise SLOW_RISING (in irKeysRead) by pullups would not work.
 	if (inputvalues) {
 		rs232_sendstring_P(PSTR("Touch key input\r\n"));
 		return 0;
@@ -967,10 +984,11 @@ int main(void) {
 	power_setup();
 	disp_rtc_setup();
 	g_settings.debugRs232 = 1; //gets overwritten by config_load() anyway
-	rs232_sendstring_P(PSTR("Advanced-Clock V0.5\r\n"));
+	rs232_sendstring_P(PSTR("Advanced-Clock V0.6\r\n"));
+	g_state.printPing = 1;
 	config_load();
 	g_state.batteryCharged = g_settings.batteryCapacity;
-	g_state.batteryCharged *= (60*60);//mAh -> mAs
+	g_state.batteryCharged *= (60*60); //mAh -> mAs
 	sei();
 	uint8_t resetsource = reset_print();
 	resetcounter_increase();

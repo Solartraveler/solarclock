@@ -83,6 +83,9 @@ ISR(TCE0_OVF_vect) {
 ISR(PORTC_INT0_vect) {
 	DEBUG_INT_ENTER(rc5_Pin);
 	PORTC.INT0MASK &= ~0x4; //stop this interrupt
+	rc5_bit = 0;
+	rc5_time = 0; //otherwise both interrupts might be called repeatedly -> DOS
+	rc5_tmp = 0;
 	rc5decode();
 	PR_PRPE &= ~PR_TC0_bm; //start clock timer E0
 	DEBUG_INT_LEAVE(rc5_Pin);

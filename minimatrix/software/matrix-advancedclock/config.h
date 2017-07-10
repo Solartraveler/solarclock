@@ -15,6 +15,10 @@
 #define DCF77LEVEL_MAX 150
 #define DCF77LEVEL_MIN 2
 
+//milliseconds/day the crystal goes wrong
+#define TIMECALIB_MAX 30000
+#define TIMECALIB_MIN (-TIMECALIB_MAX)
+
 #define ALARMS 2
 #define RC5KEYS 4
 
@@ -84,6 +88,7 @@ typedef struct {
 	uint8_t loggerPeriod; //[hour] until resync of dcf after last sync stopped
 	uint8_t dcf77Period; //[hour] how often a log is written
 	uint8_t flickerWorkaround; //if 1, workaround for display flicker is enabled (at the cost of more power consumption)
+	int16_t timeCalib; //[ms] the clock should go faster or slower each day
 	uint8_t reserved[29]; //decrease if new settings get in, so no crc mismatch on next start
 } settings_t;
 
@@ -105,6 +110,10 @@ typedef struct {
 	uint8_t timemcache; // [minutes] value equivalent to ((time / 60 % 60), reduces cpu load by avoiding slow divisions
 	uint8_t timescache; // [seconds] value equivalent to (time % 60), reduces cpu load by avoiding slow divisions
 	uint8_t summertime; //1 = the current time is the summer time.
+	int16_t timeLastDelta; //[ms] of delta scaled to the last 24h when clock got new DCF77 signal.
+	uint32_t timeStampLastSync; //[seconds] since 1.1.2000 last successful sync timestamp
+	int16_t accumulatedErrorCycles; // [1sec/32768] Updated every minute. Number of 32.768kHz crystal cycles the clock goes wrong
+	int32_t badCyclesRoundingError; //[1sec/32768] Updated every minute. Number of cycles per day rounded off from accumulatedErrorCycles
 	int16_t freqdelta; //remaining error [(1/100)%] of the internal RC resonator compared to 32.768kHz crystal
 	uint16_t ldr; //lower 14 bits: [AD] raw value, upper 2 bits: conversion resistor selected
 	uint8_t brightnessLdr; //current one if ldr would be used (before slow adjust)
@@ -155,6 +164,7 @@ typedef struct {
 	uint8_t powersaveEnabled;
 	uint8_t pintesterrors; //1 = pintest detected errors, 0 = no errors or not run
 	uint8_t rfm12keyqueue[RFM12_KEYQUEUESIZE]; //keys from the rfm12 module
+	uint8_t printPing; //1 = print ping every second on debug output, 0 = do not print ping
 	loggerstate_t logger;
 } sysstate_t;
 

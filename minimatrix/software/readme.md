@@ -6,9 +6,10 @@ You can edit the menu with my other open source project from
 http://menudesigner.sourceforge.net/
 
 ## The simple version
-Currently a simple version of the software is finished.
 
 Its not containing all planned features of the clock, but is complete enough to run and allow using the clock.
+This might be a starting point to get an overview how the code is managed or simply use it if you just dont want a heavily featured clock.
+About 30kiB of the flash is used.
 
 ### Features:
 
@@ -35,6 +36,8 @@ Its not containing all planned features of the clock, but is complete enough to 
 - Keylock preventing accidental key presses
 
 - Set RFM12 module to power down mode
+
+- Suppors the infrared (reflex light barrier) keys.
 
 - Many many settings:
 
@@ -90,7 +93,7 @@ Its not containing all planned features of the clock, but is complete enough to 
 
 ## The advanced version
 
-The advanced version contains all features of the simple version.
+The advanced version contains all features of the simple version and uses about 51KiB flash.
 
 Unlike the simple clock version, the advanced version contains source code from third parties:
 
@@ -113,11 +116,21 @@ The two wire interface library is from Atmel Corporation.
 
 - Power down on certain times of the day, saving power
 
-### Planned features
-
 - Wireless control and read of logger with RFM12
 
-- Currently, communication with RFM12 works, however for some reason the crystal does not start, so no RX, TX.
+- Manually setting time and date in the case there is no DCF sync
+
+- Test pattern for the LED matrix
+
+- Pin test for checking proper soldering
+
+- Supports both infrared or capacitive keys - does autodetect on startup.
+
+- Calibration of the internal crystal in the range of +- 0.024%
+
+### Planned features
+
+- Its finished :)
 
 ### Known bugs:
 

@@ -1,5 +1,5 @@
 Advanced clock TODO:
-Display flicker                     -> Wont fix: still no idea why. But workaround can be enabled in debug menu (increases the power consumtion a little)
+Display flicker                     -> TODO: still no idea why. But workaround can be enabled in debug menu (increases the power consumtion a little)
                                                                     -> Workaround seems not to work on one device...
 Power save mode selectable          -> Done
 Power save mode for specific times  -> Done
@@ -10,13 +10,15 @@ Pin Selftest                        -> Done
 Logger                              -> Done
 Reboot/runtime counter              -> Done
 Redundant config load/store         -> Done
-Crashes on keypress                 -> TODO (only observed when enabling of RC-5 decoder)
-Touch keys                          -> TODO (Currently only work when circuit is grounded. Need to increase sensitivity)
+Crashes on keypress                 -> Done, needs long time testing
+Touch keys                          -> Done
 Smooth brightness adjust            -> Done (source of flicker while brightness reduce is likely caused by insufficient LED voltage regulation)
 Summer winter time adjust           -> Done
-DCF77 sync wait time adjustable     -> TODO: Selecting 24h -> no sync at all. Everything else works.
+DCF77 sync wait time adjustable     -> Done, selecting 24h fixed, needs testing
 Logger status write time adjustable -> Done
 Manual time adjust                  -> Done
 Manual charger state adjust         -> Done
 Auto powersave on critical voltage  -> Done
-Calibration option for crystal      -> TODO
+Calibration option for crystal      -> Done, needs long time testing
+Test Patterns                       -> Done
+IR Keys                             -> Needs debugging why key A is frequently pressed by accident
