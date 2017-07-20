@@ -44,5 +44,8 @@ extern uint8_t g_debugint; //number identifying the last called or left interrup
 
 #endif
 
+void __attribute__ ((noinline)) stackCheckInit(void);
+void stackCheck(void);
+
 
 #endif

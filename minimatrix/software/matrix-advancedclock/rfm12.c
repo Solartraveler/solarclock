@@ -94,6 +94,12 @@ Mode4: Wait until TX->RX timeout done -> Mode0
 
 #include <stdio.h>
 #include <string.h>
+
+#ifdef UNIT_TEST
+//otherwise rand_r is not defined
+#define _XOPEN_SOURCE 500
+#endif
+
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdint.h>
@@ -111,6 +117,14 @@ Mode4: Wait until TX->RX timeout done -> Mode0
 #define OPTIMIZER static inline
 
 #else
+
+/*rand_r is defined in posix 2001 but declared obsolete in posix 2008.
+  So this might get linking errors with future libc... :(
+  In this case it is safe to replace it in the test cases by rand().
+  But dont do this on the real hardware as its not thread safe and rand_r
+  is used within an interrupt.
+*/
+int rand_r (unsigned long *__ctx);
 
 #include "testcases/testrfm12.h"
 #include "testcases/pccompat.h"
@@ -168,7 +182,7 @@ uint8_t rfm12_actreq; //if 1, the other side wants an act packet from us
 uint8_t rfm12_actgot; //if 1, our last data package has been received successfully
 uint8_t rfm12_retriesleft; //counts down the nuber of times the package is tried to be resend
 //uint32_t fits to the unsigned long on the avr architecture and the unsigned int on the amd64 architecture as call for rand_r
-uint32_t rfm12_randstate; //used for retransmission timeout. Avoids two senders always retrying at the same time.
+unsigned long rfm12_randstate; //used for retransmission timeout. Avoids two senders always retrying at the same time.
 
 //decoded packet (write by interrupt, read by update call, main never reads more than 4 chars)
 volatile uint8_t rfm12_rxdata[RFM12_DATABUFFERSIZE];

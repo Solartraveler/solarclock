@@ -128,6 +128,7 @@ int16_t calibrate_update(void) {
 	return 0x7FFF;
 }
 
+//TODO: We need to wait until the UART is not transmitting in order to change the clock
 void clock_highspeed(void) {
 	uint8_t timeout = 0;
 	OSC_CTRL &= ~OSC_PLLEN_bm; //otherwise scaler cant be changed
@@ -141,6 +142,7 @@ void clock_highspeed(void) {
 	}
 	//switch if stable
 	if (OSC_STATUS & OSC_PLLRDY_bm) {
+		rs232_stall();
 		cli();
 		CCP = 0xD8; //change protection
 		CLK_CTRL = CLK_SCLKSEL_PLL_gc;
@@ -162,11 +164,13 @@ void clock_highspeed(void) {
 		}
 		g_counter_speedstart = TCC1.CNT;
 		sei();
+		rs232_continue();
 	}
 }
 
 void clock_normalspeed(void) {
 	//switch to 2MHz internal RC
+	rs232_stall();
 	cli();
 	CCP = 0xD8; //change protection
 	CLK_CTRL = CLK_SCLKSEL_RC2M_gc;
@@ -191,6 +195,7 @@ void clock_normalspeed(void) {
 	sei();
 	//disable PLL
 	OSC_CTRL &= ~OSC_PLLEN_bm;
+	rs232_continue();
 }
 
 

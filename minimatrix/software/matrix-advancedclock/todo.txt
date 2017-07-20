@@ -10,15 +10,15 @@ Pin Selftest                        -> Done
 Logger                              -> Done
 Reboot/runtime counter              -> Done
 Redundant config load/store         -> Done
-Crashes on keypress                 -> Done, needs long time testing
+Crashes on keypress                 -> Done
 Touch keys                          -> Done
 Smooth brightness adjust            -> Done (source of flicker while brightness reduce is likely caused by insufficient LED voltage regulation)
 Summer winter time adjust           -> Done
-DCF77 sync wait time adjustable     -> Done, selecting 24h fixed, needs testing
+DCF77 sync wait time adjustable     -> Done
 Logger status write time adjustable -> Done
 Manual time adjust                  -> Done
 Manual charger state adjust         -> Done
 Auto powersave on critical voltage  -> Done
-Calibration option for crystal      -> Done, needs long time testing
+Calibration option for crystal      -> Done
 Test Patterns                       -> Done
-IR Keys                             -> Needs debugging why key A is frequently pressed by accident
+IR Keys                             -> Done

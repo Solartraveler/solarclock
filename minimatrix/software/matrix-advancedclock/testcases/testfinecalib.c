@@ -48,15 +48,19 @@ int testfinecalib1(int16_t timeCalib,           int16_t acu,         int32_t cyc
 
 int testfinecalib(void) {
 	int errors = 0;
-	errors += testfinecalib1(0, 0, 0, 0, 0, 0);
-	errors += testfinecalib1(0, 100, 123, 0, 100, 123);
-	errors += testfinecalib1(1, 0, 0, 0, 0, 32768); //goes 1ms/day too fast
-	errors += testfinecalib1(1000, 0, 0, 0, 22, 1088000); //goes 1s/day too fast
-	errors += testfinecalib1(10000, 0, 0, 0, 227, 800000); //goes 10s/day too fast
-	errors += testfinecalib1(20000, 0, 0, 0, 455, 160000); //goes 20s/day too fast
-	errors += testfinecalib1(10000, 227, 800000, 0, 455, 160000); //goes 10s/day too fast
-	errors += testfinecalib1(10000, 455, 160000, 1, 202, 960000); //goes 10s/day too fast
-	errors += testfinecalib1(-10000, 0, 0, 0, -227, -800000); //goes -10s/day too slow
-	errors += testfinecalib1(-10000, -455, -160000, -1, -202, -960000); //goes 10s/day too fast
+	errors += testfinecalib1(0,      0,    0,       0,  0,    0);
+	errors += testfinecalib1(0,      100,  123,     0,  100,  123);
+	errors += testfinecalib1(1,      0,    0,       0,  0,    32768); //goes 1ms/day too slow
+	errors += testfinecalib1(1000,   0,    0,       0,  22,   1088000); //goes 1s/day too slow
+	errors += testfinecalib1(10000,  0,    0,       0,  227,  800000); //goes 10s/day too slow
+	errors += testfinecalib1(20000,  0,    0,       0,  455,  160000); //goes 20s/day too slow
+	errors += testfinecalib1(10000,  227,  800000,  0,  455,  160000); //goes 10s/day too slow
+	errors += testfinecalib1(10000,  455,  160000,  -1,  202,  960000); //goes 10s/day too slow
+	errors += testfinecalib1(-10000, 0,    0,       0,  -227, -800000); //goes -10s/day too fast
+	errors += testfinecalib1(-10000, -455, -160000, 1,  -202, -960000); //goes 10s/day too slow
+	errors += testfinecalib1(30000,  0,    0,       -1,  202, 960000); //goes 30s/day too slow
+	errors += testfinecalib1(30000,  400,  0,       -2,  122, 960000); //goes 30s/day too slow
+	errors += testfinecalib1(-30000, 0,    0,       1,  -202, -960000); //goes 30s/day too fast
+	errors += testfinecalib1(-30000, -400, 0,       2,  -122, -960000); //goes 30s/day too fast
 	return errors;
 }

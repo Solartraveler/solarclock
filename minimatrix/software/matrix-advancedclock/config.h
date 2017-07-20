@@ -51,7 +51,7 @@ typedef struct {
 		C. as 2 + Logger messages
 		D. as 2 + RC5 messages
 		E. as 2 + timing exceeds
-		F. as 2
+		F. as 2 + memory statistics
 	*/
 	uint8_t debugRs232;
 	uint8_t alarmEnabled[ALARMS];  //0: Disabled, 1: Enabled
@@ -165,6 +165,8 @@ typedef struct {
 	uint8_t pintesterrors; //1 = pintest detected errors, 0 = no errors or not run
 	uint8_t rfm12keyqueue[RFM12_KEYQUEUESIZE]; //keys from the rfm12 module
 	uint8_t printPing; //1 = print ping every second on debug output, 0 = do not print ping
+	void * memMinStack; //[address] minimum address of the stack not written
+	void * memMaxHeap; //[address maximum address used for the heap (likely a constant as this project does not use malloc/free)
 	loggerstate_t logger;
 } sysstate_t;
 

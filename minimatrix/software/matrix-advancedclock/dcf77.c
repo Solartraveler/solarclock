@@ -1,5 +1,5 @@
-/* Matrix-Simpleclock
-  (c) 2014-2016 by Malte Marwedel
+/* Matrix-Advancedclock
+  (c) 2014-2017 by Malte Marwedel
   www.marwedels.de/malte
 
   This program is free software; you can redistribute it and/or modify
@@ -193,7 +193,7 @@ static uint8_t d77x(uint8_t minutestart, uint8_t index, uint8_t historyminute) {
 	return sample;
 }
 
-static uint8_t dcf77_analyze(uint8_t startindex) {
+uint8_t dcf77_analyze(uint8_t startindex) {
 	uint8_t minute = 0, hour = 0, day = 0, month = 0, year2digit = 0;
 	uint16_t errorrate = 0;
 	uint8_t datamod[DCF77DIAGRAMSIZE*DCF77DATAMINUTES];

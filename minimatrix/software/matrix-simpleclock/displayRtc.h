@@ -14,7 +14,7 @@ void disp_configure_set(uint8_t brightness, uint16_t refreshrate);
 void rtc_waitsafeoff(void);
 
 
-/*+1 count slower, -1 count faster, 0 count as expected
+/*+1, +2 count slower, -1, -2 count faster, 0 count as expected
 This is relative to one tick of the crystal and DISP_RTC_PER
 Example: Setting direction to +1 for one minute,
 and then call to set back to 0, results in:

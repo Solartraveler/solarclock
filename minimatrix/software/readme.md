@@ -9,7 +9,7 @@ http://menudesigner.sourceforge.net/
 
 Its not containing all planned features of the clock, but is complete enough to run and allow using the clock.
 This might be a starting point to get an overview how the code is managed or simply use it if you just dont want a heavily featured clock.
-About 30kiB of the flash is used.
+About 30KiB of the flash is used.
 
 ### Features:
 
@@ -106,7 +106,7 @@ The two wire interface library is from Atmel Corporation.
 - Event logger in external I2C EEPROM (reboots and cause of it, temperature, chargings, DCF77 sync times and time delta ...)
 
   * Supports eeproms with one I2C address, two bytes for addressing and at least 16 byte page size.
-   This is usually the case for all 8KB - 64KB eeproms. Each log entry requires 23 bytes.
+   This is usually the case for all 8KiB - 64KiB eeproms. Each log entry requires 23 bytes.
    Storing is done FIFO based without explicit index storing, so eeprom life is maximized.
    Size detection is done automatically on first startup.
 
@@ -126,7 +126,9 @@ The two wire interface library is from Atmel Corporation.
 
 - Supports both infrared or capacitive keys - does autodetect on startup.
 
-- Calibration of the internal crystal in the range of +- 0.024%
+- Calibration of the internal crystal in the range of +- 0.036%
+
+- Heap to stack closest gap (=free RAM) reporting. (95% of the 4KiB are used)
 
 ### Planned features
 
@@ -135,5 +137,3 @@ The two wire interface library is from Atmel Corporation.
 ### Known bugs:
 
   - Sometimes the display flickers. Seems I loose some interrupts...
-
-  - Enabling the RC-5 receiver sometimes seem to lock up the device. The watchdog bites after 8 seconds...

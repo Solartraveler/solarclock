@@ -363,6 +363,11 @@ uint8_t updateLoggerText(void) {
 	return 1;
 }
 
+uint8_t updateRamText(void) {
+	sprintf_P((char*)menu_strings[MENU_TEXT_FreeRam], PSTR("%iByte"), (int)(g_state.memMinStack - g_state.memMaxHeap));
+	return 1;
+}
+
 /*This function updates all text, which are only changed as response to user
  input. (Not as response to A/D changes or timings*/
 static void updateText(void) {
@@ -544,6 +549,7 @@ static uint8_t brightDec(void) {
 	if (g_settings.brightness > 1)
 #endif
 	{
+#if 1
 		if (g_settings.brightness >= 80) {
 			g_settings.brightness -= 20;
 		} else if (g_settings.brightness >= 15) {
@@ -551,11 +557,15 @@ static uint8_t brightDec(void) {
 		} else {
 			g_settings.brightness--;
 		}
+#else
+		g_settings.brightness--;
+#endif
 	}
 	return 0;
 }
 
 static uint8_t brightInc(void) {
+#if 1
 	if ((g_settings.brightness >= 60) && (g_settings.brightness < 235)) {
 		g_settings.brightness += 20;
 	} else if ((g_settings.brightness >= 10) && (g_settings.brightness < 250)) {
@@ -565,6 +575,9 @@ static uint8_t brightInc(void) {
 			g_settings.brightness++;
 		}
 	}
+#else
+	g_settings.brightness++;
+#endif
 	return 0;
 }
 
@@ -1189,6 +1202,7 @@ unsigned char menu_action(unsigned short action) {
 		case MENU_ACTION_ShowPowersavestopOn:g_dispUpdate = &updatePowersavestopText; break;
 		case MENU_ACTION_ShowPowersaveweekOn:g_dispUpdate = &updatePowersaveweekText; break;
 		case MENU_ACTION_ShowLoggerOn:       g_dispUpdate = &updateLoggerText; break;
+		case MENU_ACTION_ShowRamOn:          g_dispUpdate = &updateRamText; break;
 		case MENU_ACTION_DisplayUpdateOff:   g_dispUpdate = NULL; break;
 		case MENU_ACTION_Dcf77Off:           redraw = dcf77Off(); break;
 		case MENU_ACTION_Dcf77On:            redraw = dcf77On(); break;

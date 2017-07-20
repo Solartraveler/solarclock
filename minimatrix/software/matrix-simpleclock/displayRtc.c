@@ -1,5 +1,5 @@
 /* Matrix-Simpleclock
-  (c) 2014-2016 by Malte Marwedel
+  (c) 2014-2017 by Malte Marwedel
   www.marwedels.de/malte
 
   This program is free software; you can redistribute it and/or modify
@@ -64,7 +64,7 @@ volatile uint16_t disp_rtc_comp; //copy of RTC.COMP
 
 volatile uint8_t rtc_8thcounter;
 
-uint16_t disp_rtc_per = DISP_RTC_PER; //this is adjusted slightly by +-1 for increasing precision
+uint16_t disp_rtc_per = DISP_RTC_PER; //this is adjusted slightly by +-2 for increasing precision
 
 uint8_t const disp_linebits[7] = {0, (1<<4), (1<<5), (1<<6), (1<<7), (1<<6), 0};
 

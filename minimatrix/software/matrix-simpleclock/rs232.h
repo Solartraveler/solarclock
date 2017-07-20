@@ -9,6 +9,7 @@
 #define RS232_PORT PORTE
 #define RS232_RX_PIN PIN2CTRL
 #define RS232_TX_PIN PIN3CTRL
+#define RS232_TX_PIN_NR 3
 #define RS232_ISR_VECT USARTE0_TXC_vect
 
 
@@ -38,5 +39,13 @@ void rs232_puthex(uint8_t value);
 void rs232_sendstring(char * string);
 //if enabled, replicates the data to the rfm12
 void rs232_sendstring_P(const char * string);
+
+/*stalls the sending of data. Useful for changeing the CPU clock.
+ Note that printing data during a stall might end up in a deadlock
+*/
+void rs232_stall(void);
+
+//continure the rs232. Call after stall.
+void rs232_continue(void);
 
 #endif

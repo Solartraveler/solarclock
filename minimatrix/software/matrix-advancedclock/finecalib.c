@@ -56,7 +56,7 @@ range to +-30s.
 
 //expected to be called every minute
 void updateFineCalib(void) {
-	int32_t thousandBadCyclesDay = (int32_t)g_settings.timeCalib * F_RTC + g_state.badCyclesRoundingError;
+	int32_t thousandBadCyclesDay = (int32_t)g_settings.timeCalib * F_RTC + g_state.badCyclesRoundingError; //negative value -> too much cycles, positive -> missing cycles
 	g_state.badCyclesRoundingError = thousandBadCyclesDay % (1000L*24L*60L);
 	int32_t badCyclesMinute = thousandBadCyclesDay / (1000L*24L*60L);
 	int16_t aec = g_state.accumulatedErrorCycles + badCyclesMinute;
@@ -68,27 +68,27 @@ void updateFineCalib(void) {
 	}
 	//printf("thousandBadCyclesDay=%i, roundingError=%i, minute=%i, aec=%i\n", thousandBadCyclesDay, g_state.badCyclesRoundingError, badCyclesMinute, aec);
 //	printf("CORRECTINGCYCLES=%i, F_RTC=%i, DIP_RTC_PER=%i\n", CORRECTINGCYCLES, F_RTC, DISP_RTC_PER);
-	if (aec >= CORRECTINGCYCLES) {
+	if (aec <= (-CORRECTINGCYCLES)) {
 		if (g_settings.debugRs232 == 0xB) {
 			rs232_sendstring_P(PSTR("Slow down\r\n"));
 		}
-		if (aec >= CORRECTINGCYCLES*2) {
+		if (aec <= (-CORRECTINGCYCLES*2)) {
 			rtc_finecalib(2); //slow down a lot
-			aec -= CORRECTINGCYCLES*2;
+			aec += CORRECTINGCYCLES*2;
 		} else {
 			rtc_finecalib(1); //slow down
-			aec -= CORRECTINGCYCLES;
+			aec += CORRECTINGCYCLES;
 		}
-	} else if (aec <= (-CORRECTINGCYCLES)) {
+	} else if (aec >= CORRECTINGCYCLES) {
 		if (g_settings.debugRs232 == 0xB) {
 			rs232_sendstring_P(PSTR("Speed up\r\n"));
 		}
-		if (aec <= (-CORRECTINGCYCLES*2)) {
+		if (aec >= CORRECTINGCYCLES*2) {
 			rtc_finecalib(-2); //speed up a lot
-			aec += CORRECTINGCYCLES*2;
+			aec -= CORRECTINGCYCLES*2;
 		} else {
 			rtc_finecalib(-1); //speed up
-			aec += CORRECTINGCYCLES;
+			aec -= CORRECTINGCYCLES;
 		}
 	} else {
 		rtc_finecalib(0); //ideal speed

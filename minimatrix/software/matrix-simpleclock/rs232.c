@@ -36,9 +36,11 @@ volatile char g_rs232bufferwp; //points to the next memory field to be written
 volatile char g_rs232bufferrp;//points to the memory field to be read next
 volatile uint8_t g_rs232userx = 0;
 
-
+/*Transmit complete interrupt (not data register empty).
+  So the HW buffer is not used and we can immediately power the HW down.
+*/
 ISR(RS232_ISR_VECT) {
-	if (g_rs232bufferwp != g_rs232bufferrp) {
+	if ((g_rs232bufferwp != g_rs232bufferrp) && (USART.STATUS & USART_DREIF_bm)) {
 		uint8_t bufferrp = g_rs232bufferrp;
 		USART.DATA = g_rs232buffer[bufferrp];
 		bufferrp++;
@@ -48,8 +50,9 @@ ISR(RS232_ISR_VECT) {
 		g_rs232bufferrp = bufferrp;
 	} else {
 		if ((g_rs232starttransmit == 0) && (g_rs232userx == 0)) {
-			RS232_PORT.RS232_TX_PIN = PORT_ISC0_bm | PORT_ISC1_bm | PORT_ISC2_bm | PORT_OPC_PULLUP_gc;
-			USART.CTRLB = 0;
+			RS232_PORT.DIRCLR = 1<<RS232_TX_PIN_NR;
+			RS232_PORT.RS232_TX_PIN = PORT_ISC0_bm | PORT_ISC1_bm | PORT_ISC2_bm | PORT_OPC_PULLUP_gc; //pull up + input disable
+			USART.CTRLB = 0; //disable TX
 			PWRSAVEREG |= PWRSAVEBIT;
 		}
 	}
@@ -78,15 +81,15 @@ void rs232_tx_init(void) {
 #endif
 
 	RS232_PORT.RS232_TX_PIN = PORT_OPC_TOTEM_gc;
-	RS232_PORT.DIRSET = 1<<3;
-	_delay_loop_2(F_CPU/BAUDRATE*10/4); //wait 10 bits, since enabling produces some spikes
+	RS232_PORT.DIRSET = 1<<RS232_TX_PIN_NR;
+	//_delay_loop_2(F_CPU/BAUDRATE*10/4); //wait 10 bits, since enabling produces some spikes
 }
 
 void rs232_rx_init(void) {
 	rs232_sendstring_P(PSTR("RX enabled\r\n"));
 	g_rs232userx = 1;
 	rs232_tx_init();
-	RS232_PORT.RS232_RX_PIN = PORT_OPC_PULLDOWN_gc; //otherwise a disconnected input gets garbage
+	RS232_PORT.RS232_RX_PIN = PORT_OPC_PULLUP_gc; //otherwise a disconnected input gets garbage
 	USART.CTRLB |= USART_RXEN_bm;
 }
 
@@ -94,12 +97,13 @@ void rs232_rx_disable(void) {
 	rs232_sendstring_P(PSTR("RX disabled\r\n"));
 	g_rs232userx = 0;
 	USART.CTRLB &= ~USART_RXEN_bm;
-	RS232_PORT.RS232_RX_PIN = PORT_ISC0_bm | PORT_ISC1_bm | PORT_ISC2_bm; //disables input sense
+	RS232_PORT.RS232_RX_PIN = PORT_ISC0_bm | PORT_ISC1_bm | PORT_ISC2_bm | PORT_OPC_PULLUP_gc; //disables input sense + pullup
 }
 
 void rs232_disable(void) {
 	rs232_rx_disable();
-	RS232_PORT.RS232_TX_PIN = PORT_ISC0_bm | PORT_ISC1_bm | PORT_ISC2_bm | PORT_OPC_PULLDOWN_gc;
+	RS232_PORT.DIRCLR = 1<<RS232_TX_PIN_NR;
+	RS232_PORT.RS232_TX_PIN = PORT_ISC0_bm | PORT_ISC1_bm | PORT_ISC2_bm | PORT_OPC_PULLUP_gc;
 	USART.CTRLB = 0;
 	PWRSAVEREG |= PWRSAVEBIT;
 }
@@ -189,5 +193,30 @@ void rs232_sendstring_P(const char * string) {
 		if (rfm12_txbufferfree() >= len) {
 			rfm12_sendP(string, len);
 		}
+	}
+}
+
+void rs232_stall(void) {
+	/*Since this is single thread, no need to worry about rs232_putchar
+	  only the interrupt is of interest. */
+	USART.CTRLA = 0; //disable all interrupts of rs232
+	/*According to appnote AVR1207 the flag waits until the complete HW FIFO is empty
+	  Up to three chars can be in the HW buffer, so 0.5ms per char -> wait 1.6ms max
+	  Or there can be no char ever transmitted in which case USART_TXCIF_bm never
+	  gets set and the timeout prevents a deadlock.
+	*/
+	uint8_t timeout = 160;
+	if ((PWRSAVEREG & PWRSAVEBIT) == 0) {
+		while (((USART.STATUS & USART_TXCIF_bm) == 0) && (timeout)) {
+			_delay_us(10.0);
+			timeout--;
+		}
+	}
+}
+
+void rs232_continue(void) {
+	if ((PWRSAVEREG & PWRSAVEBIT) == 0) {
+		//should automatically call the int handler which looks into the software FIFO
+		USART.CTRLA = USART_TXCINTLVL_MED_gc;
 	}
 }

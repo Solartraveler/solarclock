@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<MenuConfig utf8="-1" Xsize="28" Ysize="5" compact="-1" graphviz="1" languages="1" multilang="0">
+<MenuConfig utf8="-1" Xsize="28" Ysize="5" compact="-1" graphviz="0" languages="1" multilang="0">
   <window number="30" comment="D - Show DCF77" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="DcfValue" number="1" multilang="0" storagemethod="1"/>
     <shortcut action="DisplayUpdateOff" number="2" screen="window 29" shortcutkey="1"/>
@@ -292,7 +292,7 @@
     <label Xpos="0" Ypos="0" font="14" text="Volt in" number="1" multilang="0" storagemethod="0"/>
     <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
     <shortcut action="" number="3" screen="window 51" shortcutkey="2"/>
-    <shortcut action="" number="4" screen="window 120" shortcutkey="3"/>
+    <shortcut action="" number="4" screen="window 123" shortcutkey="3"/>
     <shortcut action="ShowVoltageOn" number="5" screen="window 11" shortcutkey="4"/>
   </window>
   <window number="51" comment="MD - Current" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
@@ -466,9 +466,16 @@
   <window number="120" comment="MD - Test Patterns" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="15" text="Test pat" number="1" multilang="0" storagemethod="0"/>
     <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
-    <shortcut action="" number="3" screen="window 1" shortcutkey="2"/>
+    <shortcut action="" number="3" screen="window 123" shortcutkey="2"/>
     <shortcut action="" number="4" screen="window 118" shortcutkey="3"/>
     <shortcut action="" number="5" screen="window 121" shortcutkey="4"/>
+  </window>
+  <window number="123" comment="MD - Free RAM&#xA;RAMFREE is the only string fitting on the display" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="15" text="RAMFREE" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 34" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 1" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 120" shortcutkey="3"/>
+    <shortcut action="ShowRamOn" number="5" screen="window 124" shortcutkey="4"/>
   </window>
   <window number="11" comment="D - Show voltage&#xA;of the input" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="InputVoltage" number="1" multilang="0" storagemethod="1"/>
@@ -599,6 +606,10 @@
   <window number="122" comment="D - All dots off" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <shortcut action="" number="2" screen="window 120" shortcutkey="1"/>
     <shortcut action="" number="3" screen="window 121" shortcutkey="2"/>
+  </window>
+  <window number="124" comment="D - Free RAM" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="15" text="FreeRam" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="DisplayUpdateOff" number="2" screen="window 123" shortcutkey="1"/>
   </window>
   <subwindow Xpos="0" Ypos="0" Xsize="29" Ysize="6" number="56" comment="Battery low" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="BatLow" number="1" multilang="0" storagemethod="0"/>

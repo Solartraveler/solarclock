@@ -4,11 +4,11 @@ OPT=-Os
 OPTFAST=-Ofast
 DEFINES=-DAVR_BUILD
 
-OBJ = $(TARGET).o touch.o charger.o gui.o config.o rs232.o displayRtc.o menu-interpreter.o menu-text.o sound.o dcf77.o clocks.o rfm12.o adc.o timeconvert.o dcf77statisticsdecode.o pintest.o twi_master_driver.o  rc5decoder.o logger.o i2ceeprom.o finecalib.o
+OBJ = $(TARGET).o touch.o charger.o gui.o config.o rs232.o displayRtc.o menu-interpreter.o menu-text.o sound.o dcf77.o clocks.o rfm12.o adc.o timeconvert.o dcf77statisticsdecode.o pintest.o twi_master_driver.o  rc5decoder.o logger.o i2ceeprom.o finecalib.o debug.o
 INCLUDES = $(wildcard *.h)
 
 all: $(OBJ)
-	avr-gcc -mmcu=$(MCU) -I. -gstabs $(OPT) -std=gnu99 $(OBJ) --output $(TARGET).elf
+	avr-gcc -mmcu=$(MCU) -I. -gstabs $(OPT) -std=gnu99 $(OBJ) -Wl,-Map,$(TARGET).map --output $(TARGET).elf
 	avr-objcopy -O ihex -R .eeprom -R .fuse -R .lock -R .signature  $(TARGET).elf $(TARGET).hex
 	avr-objcopy -j .eeprom  --set-section-flags=.eeprom=alloc,load --change-section-lma .eeprom=0  --no-change-warnings -O ihex $(TARGET).elf $(TARGET).epp || exit 0
 	avr-objdump -h -S $(TARGET).elf > $(TARGET).lss
@@ -48,13 +48,14 @@ reset:
 
 clean:
 	rm -rf *.o
-	rm -rf $(TARGET).hex
+	rm -f $(TARGET).hex
 	rm -rf *.sx
 	rm -rf *.lss
 	rm -rf *.s
 	rm -rf *.pre
-	rm -rf $(TARGET).elf
-	rm -rf $(TARGET).epp
+	rm -f $(TARGET).elf
+	rm -f $(TARGET).epp
+	rm -f *.map
 
 removebackups:
 	rm -rf *~

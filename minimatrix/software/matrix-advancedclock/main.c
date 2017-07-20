@@ -423,50 +423,88 @@ static void watchdog_enable(void) {
 	WDT_CTRL = (0xA << 2) | 3; //enable with 8seconds timeout
 }
 
+#define IRKEYS 4
+#define VERIFYCHECKS 4
+
+//filters high noise, like flickering LED lighning
+#define IRMAX 2800
+
 #define SLOW_RISING
-static uint8_t irKeysRead(void) {
-	uint16_t val[4];
-	uint8_t key = 0;
-	uint8_t numkeys = 0;
-	uint16_t avg = 0;
-	char buffer[DEBUG_CHARS+1];
-	buffer[DEBUG_CHARS] = '\0';
+
+/*Note: Energy could be conserved by not fully rise the voltage
+  when using SLOW_RISING. However then it must be taken care of the fact that
+  the first channel will have a constantly lower sampled value as the voltage
+  would rise for all channels while sampling is in progress.
+  A more deterministic AD value could be aquired by using the event system and
+  a timer when applying power. Currently the _delay_us is sometimes increased
+  by interrupts which affects AD values by the longer rise time.
+*/
+static void irKeyPowerup(void) {
 #ifdef SLOW_RISING
 	PORTA.PIN2CTRL = PORT_OPC_PULLDOWN_gc;
+	_delay_us(150.0); //50us is not enough for slowly rising power
 #else
 	PORTA.PIN2CTRL = PORT_OPC_TOTEM_gc;
 	PORTA.DIRSET = 0x04;
 	PORTA.OUTCLR = 0x04; //the output is low active, enable IR LEDs
+	_delay_us(30.0);
 #endif
-	_delay_us(50.0);
-	adca_startup();
-	adca_getQuad(3, 4, 5, 6, ADC_REFSEL_VCC_gc, val);
+}
+
+static void irKeyPowerdown(void) {
 #ifdef SLOW_RISING
 	PORTA.PIN2CTRL = PORT_OPC_PULLUP_gc;
 #else
 	PORTA.OUTSET = 0x04; //disable IR LEDs
 #endif
-	adca_stop();
-	for (uint8_t i = 0; i < 4; i++) {
+}
+
+static uint8_t irKeysRead(void) {
+	uint16_t val[IRKEYS];
+	uint16_t valVerify[VERIFYCHECKS];
+	uint8_t key = 0;
+	uint8_t numkeys = 0;
+	uint16_t avg = 0;
+	char buffer[DEBUG_CHARS+1];
+	buffer[DEBUG_CHARS] = '\0';
+	irKeyPowerup();
+	adca_startup();
+	adca_getQuad(3, 4, 5, 6, ADC_REFSEL_VCC_gc, val);
+	irKeyPowerdown();
+	for (uint8_t i = 0; i < IRKEYS; i++) {
 		avg += val[i];
 	}
+	avg = (avg >> 2) * 9/10; //90% limit of average value (>>2 represents IRKEYS)
+	for (uint8_t i = 0; i < IRKEYS; i++) {
+		if ((val[i] < avg) && (val[i] < (IRMAX))) {
+			//verify to filter out noise
+			irKeyPowerup();
+			adca_getQuad(i+3, i+3, i+3, i+3, ADC_REFSEL_VCC_gc, valVerify);
+			irKeyPowerdown();
+			uint8_t j;
+			uint8_t verified = 0;
+			for (j = 0; j < VERIFYCHECKS; j++) {
+				if (valVerify[j] < avg) {
+					verified++;
+				}
+			}
+			if (verified == VERIFYCHECKS) {
+				key = i + 1;
+				numkeys++;
+			}
+		}
+	}
+	adca_stop();
 	g_state.keyDebugAd = val[1];
 	if (g_settings.debugRs232 == 4) {
 		snprintf_P(buffer, DEBUG_CHARS, PSTR("IR %u %u %u %u\r\n"), val[0], val[1], val[2], val[3]);
 		rs232_sendstring(buffer);
 	}
-	avg = (avg >> 2) * 9/10; //90% limit of average value
-	for (uint8_t i = 0; i < 4; i++) {
-		if (val[i] < avg) {
-			if (g_settings.debugRs232) {
-				snprintf_P(buffer, DEBUG_CHARS, PSTR("Pressed %c\r\n"), 'A'+i);
-				rs232_sendstring(buffer);
-			}
-			key = i + 1;
-			numkeys++;
-		}
-	}
 	if (numkeys == 1) {
+		if (g_settings.debugRs232) {
+			snprintf_P(buffer, DEBUG_CHARS, PSTR("Pressed %c\r\n"), 'A'+key-1);
+			rs232_sendstring(buffer);
+		}
 		return key;
 	}
 	return 0;
@@ -636,6 +674,16 @@ static void updateDebugInput(void) {
 			rs232_sendstring_P(PSTR("C c:     modify battery state\n\r"));
 			rs232_sendstring_P(PSTR("P p:     Ping on/off\n\r"));
 		}
+#if 0
+		if (c == 'R') {
+			rs232_tx_init();
+			rs232_sendstring_P(PSTR("En\n\r"));
+		}
+		if (c == 'r') {
+			rs232_disable();
+			rs232_sendstring_P(PSTR("Dis\n\r"));
+		}
+#endif
 		if (c > 0) {
 			g_state.displayNoOffCd = 60;
 		}
@@ -838,6 +886,7 @@ static void run1xM(void) {
 	updateAlarm();
 	updatePowerSaving();
 	updateFineCalib();
+	stackCheck();
 }
 
 //run 1 times per second
@@ -982,9 +1031,10 @@ int main(void) {
 	pull_all_pins();
 	watchdog_enable();
 	power_setup();
+	stackCheckInit(); //must be called before enabling ints
 	disp_rtc_setup();
 	g_settings.debugRs232 = 1; //gets overwritten by config_load() anyway
-	rs232_sendstring_P(PSTR("Advanced-Clock V0.6\r\n"));
+	rs232_sendstring_P(PSTR("Advanced-Clock V0.7\r\n"));
 	g_state.printPing = 1;
 	config_load();
 	g_state.batteryCharged = g_settings.batteryCapacity;
