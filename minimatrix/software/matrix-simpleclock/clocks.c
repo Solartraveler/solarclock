@@ -32,7 +32,7 @@
 
 #include "dcf77.h"
 #include "rs232.h"
-
+#include "debug.h"
 
 uint8_t g_calib_running;
 int16_t g_calib_best_delta;
@@ -118,17 +118,13 @@ int16_t calibrate_update(void) {
 			PR_PRGEN |= PR_EVSYS_bm; //stop clock event system
 			PR_PRPD |= PR_TC1_bm; //stop clock timer D0
 			//debugprint
-			char buffer[DEBUG_CHARS+1];
-			buffer[DEBUG_CHARS] = '\0';
-			snprintf_P(buffer, DEBUG_CHARS, PSTR("Cal done: error=%i/100 %%\r\n"), deltas);
-			rs232_sendstring(buffer);
+			DbgPrintf_P(PSTR("Cal done: error=%i/100 %%\r\n"), deltas);
 			return deltas;
 		}
 	}
 	return 0x7FFF;
 }
 
-//TODO: We need to wait until the UART is not transmitting in order to change the clock
 void clock_highspeed(void) {
 	uint8_t timeout = 0;
 	OSC_CTRL &= ~OSC_PLLEN_bm; //otherwise scaler cant be changed

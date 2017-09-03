@@ -35,6 +35,7 @@
 
 #include "displayRtc.h"
 #include "rs232.h"
+#include "debug.h"
 #include "sound.h"
 #include "dcf77.h"
 #include "clocks.h"
@@ -171,14 +172,11 @@ static void update_consumption(void) {
 	uas += 725; //constant offset
 	g_state.consumption += uas; //64 bit addition
 	if (g_settings.debugRs232 == 0xA) {
-		char buffer[DEBUG_CHARS+1];
-		buffer[DEBUG_CHARS] = '\0';
 		//the sprintf implementation does not support %llu, so values will be wrong
 		//after an extended period
 		uint32_t delta = g_state.consumption - consumptionOld;
 		uint32_t cons = g_state.consumption;
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("Consume: %luuAs (+%luuA)\r\n"), cons, delta);
-		rs232_sendstring(buffer);
+		DbgPrintf_P(PSTR("Consume: %luuAs (+%luuA)\r\n"), cons, delta);
 	}
 }
 
@@ -241,10 +239,7 @@ static void update_ldr(void) {
 	}
 	g_state.ldr = (workmode << 14) | v;
 /*
-	char buffer[DEBUG_CHARS+1];
-	buffer[DEBUG_CHARS] = '\0';
-	snprintf(buffer, DEBUG_CHARS, "0x%x\r\n", g_ldr);
-	rs232_sendstring(buffer);
+	DbgPrintf_P(PSTR("0x%x\r\n"), g_ldr);
 */
 }
 
@@ -373,12 +368,9 @@ static void update_display_brightness(void) {
 		g_state.brightness = newbrightness;
 	}
 	if (g_settings.debugRs232 == 3) {
-		char buffer[DEBUG_CHARS+1];
-		buffer[DEBUG_CHARS] = '\0';
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("BrVals: %u %i %i %i %i %i\r\n"),
+		DbgPrintf_P(PSTR("BrVals: %u %i %i %i %i %i\r\n"),
 		g_state.ldr, g_state.brightnessLdr, g_settings.brightness,
   	g_state.brightness, newbrightness, g_settings.brightnessAuto);
-		rs232_sendstring(buffer);
 	}
 }
 
@@ -394,8 +386,6 @@ static uint8_t irKeysRead(void) {
 	uint8_t key = 0;
 	uint8_t numkeys = 0;
 	uint16_t avg = 0;
-	char buffer[DEBUG_CHARS+1];
-	buffer[DEBUG_CHARS] = '\0';
 #ifdef SLOW_RISING
 	PORTA.PIN2CTRL = PORT_OPC_PULLDOWN_gc;
 #else
@@ -417,15 +407,13 @@ static uint8_t irKeysRead(void) {
 	}
 	g_state.keyDebugAd = val[1];
 	if (g_settings.debugRs232 == 4) {
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("IR %u %u %u %u\r\n"), val[0], val[1], val[2], val[3]);
-		rs232_sendstring(buffer);
+		DbgPrintf_P(PSTR("IR %u %u %u %u\r\n"), val[0], val[1], val[2], val[3]);
 	}
 	avg = (avg >> 2) * 9/10; //90% limit of average value
 	for (uint8_t i = 0; i < 4; i++) {
 		if (val[i] < avg) {
 			if (g_settings.debugRs232) {
-				snprintf_P(buffer, DEBUG_CHARS, PSTR("Pressed %c\r\n"), 'A'+i);
-				rs232_sendstring(buffer);
+				DbgPrintf_P(PSTR("Pressed %c\r\n"), 'A'+i);
 			}
 			key = i + 1;
 			numkeys++;
@@ -552,11 +540,8 @@ static void update_performance(void) {
 	g_state.performanceCpuRunning = percCpu;
 	//debug keep alive
 	if (g_settings.debugRs232 >= 1) {
-		char buffer[DEBUG_CHARS+1];
-		buffer[DEBUG_CHARS] = '\0';
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("Ping R:%u%% C:%u%%\r\n"), (uint16_t)percRc * 100 /256, (uint16_t)percCpu * 100 /256);
-		//snprintf_P(buffer, DEBUG_CHARS, PSTR("Ping R:%u C:%u\r\n"), rcOn, cpuOn);
-		rs232_sendstring(buffer);
+		DbgPrintf_P(PSTR("Ping R:%u%% C:%u%%\r\n"), (uint16_t)percRc * 100 /256, (uint16_t)percCpu * 100 /256);
+		//DbgPrintf_P(PSTR("Ping R:%u C:%u\r\n"), rcOn, cpuOn);
 	}
 }
 

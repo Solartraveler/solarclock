@@ -1,4 +1,4 @@
-/* Matrix-Simpleclock
+/* Matrix-Advancedclock
   (c) 2014-2016 by Malte Marwedel
   www.marwedels.de/malte
 
@@ -31,6 +31,12 @@
 #include "menu-interpreter.h"
 #include "rs232.h"
 
+#ifdef ADVANCEDCLOCK
+#include "logger.h"
+#endif
+
+#include "debug.h"
+
 #else
 
 #include "testcases/pccompat.h"
@@ -47,8 +53,7 @@ void charger_disable(void);
 #define CHARGER_MV_MAX 3400
 #define CHARGER_MA_MAX 200
 #define CHARGER_MA_MANUAL_MAX 400
-#define CHARGER_MV_LOW 2300
-#define CHARGER_MV_BAT_LOW 2100
+#define CHARGER_MV_BAT_LOW 2300
 
 #ifndef UNIT_TEST
 
@@ -89,10 +94,7 @@ void charger_calib(void) {
 	adca_stop();
 	g_state.chargerResistoroffset = v1*4096/v2;
 	if (g_settings.debugRs232) {
-		char buffer[DEBUG_CHARS+1];
-		buffer[DEBUG_CHARS] = '\0';
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("Charger resistor offset: %lu/4096\r\n"), g_state.chargerResistoroffset);
-		rs232_sendstring(buffer);
+		DbgPrintf_P(PSTR("Charger resistor offset: %lu/4096\r\n"), g_state.chargerResistoroffset);
 	}
 }
 
@@ -197,10 +199,7 @@ get polynomial with octave
 	//adjust v1/v2 rating according to the calibration
 	v1adj = v1 * 4096 / g_state.chargerResistoroffset;
 	if (g_settings.debugRs232 == 7) {
-		char buffer[DEBUG_CHARS+1];
-		buffer[DEBUG_CHARS] = '\0';
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("v1: %lu, v1adj: %lu v2: %li delta: %li\r\n"), v1, v1adj, v2, (int32_t)(v1adj - v2));
-		rs232_sendstring(buffer);
+		DbgPrintf_P(PSTR("v1: %lu, v1adj: %lu v2: %li delta: %li\r\n"), v1, v1adj, v2, (int32_t)(v1adj - v2));
 	}
 	//calculate with adjuested values
 	//we allow negative values to try to reduce the noise
@@ -209,6 +208,7 @@ get polynomial with octave
 	//with polynomial values above... (constant -232 cancels out in equation)
 	g_state.chargerCurrent = (v1adj - v2) * 1748 / 3465; // div by 2.2 to get mA ((1748/1575) * (10/22)
 }
+
 
 static void charger_enable(void) {
 	PORTQ.DIRSET = 8;
@@ -237,7 +237,7 @@ void charger_update(void) {
 	update_voltageAndCurrent();
 	uint8_t newstate = 0; //always off
 	uint32_t chargerMasMax = g_settings.batteryCapacity;
-	chargerMasMax *= (60*60); //mAh -> mAs
+	chargerMasMax *= (60UL*60UL); //mAh -> mAs
 	//--------------------- logic for determining the charger state --------------
 	if (g_settings.chargerMode == 2) { //always on
 		if (g_state.batteryCharged < (chargerMasMax*2)) {
@@ -250,8 +250,8 @@ void charger_update(void) {
 			g_settings.chargerMode = 0; //back to automatic, if charging is 2*MAX
 		}
 		if (g_state.batteryCharged > chargerMasMax) {
-			if (g_state.chargerCd < (60*60)) {
-				g_state.chargerCd = 60*60; //no automatic charging for at least one hour
+			if (g_state.chargerCd < (60UL*60UL)) {
+				g_state.chargerCd = 60UL*60UL; //no automatic charging for at least one hour
 			}
 		}
 	} else if (g_settings.chargerMode == 0) { //auto mode
@@ -261,8 +261,8 @@ void charger_update(void) {
 					if (g_state.chargerCd == 0) {
 						newstate = 1;
 					}
-				} else if (g_state.chargerCd < (60*60)) {
-					g_state.chargerCd = 60*60; //no charging for 1hour
+				} else if (g_state.chargerCd < (60UL*60UL)) {
+					g_state.chargerCd = 60UL*60UL; //no charging for 1hour
 				}
 			} else if (g_state.chargerCd < 60) {
 				//if critical current wait at least 60seconds before new charger try
@@ -295,7 +295,7 @@ void charger_update(void) {
 		if (g_state.chargerCharged60 > (int32_t)consumption60) {
 			//we have net income
 			uint32_t income60 = g_state.chargerCharged60 - consumption60; //[mAs]
-			if (income60 > (g_settings.batteryCapacity*30)) { //income60/60s -> mA, if mA > 0.5*C
+			if (income60 > (g_settings.batteryCapacity*30UL)) { //income60/60s -> mA, if mA > 0.5*C
 				efficiency = 128; //maximum efficiency
 			} else if (income60 < g_settings.batteryCapacity) { //income60/60s -> mA, if mA > 0.016*C
 				efficiency = 0;   //trickle charge, no net income
@@ -307,7 +307,7 @@ void charger_update(void) {
 				   eff = (income60*32)/(batteryCapacity*15) + 64;
 				   scale by two for more accurate results: term*2 + 64*2. Divieder 256
 				*/
-				efficiency = (income60*64)/(g_settings.batteryCapacity*15) + 128;
+				efficiency = (income60*64UL)/(g_settings.batteryCapacity*15UL) + 128;
 			}
 			g_state.batteryCharged += (income60 * (uint32_t)efficiency) / 256;
 		} else {
@@ -347,7 +347,14 @@ void charger_update(void) {
 			menu_keypress(101); //enable low bat warning
 			g_state.batLowWarningCd = 10;
 		}
+#ifdef ADVANCEDCLOCK
+		if (g_state.batteryCharged) {
+			loggerlog_batreport();
+			g_state.batteryCharged = 0; //battery needs whole charge!
+		}
+#else
 		g_state.batteryCharged = 0; //battery needs whole charge!
+#endif
 	}
 	if (g_state.batLowWarningCd) {
 		if (g_state.batLowWarningCd == 9) {
@@ -357,14 +364,11 @@ void charger_update(void) {
 	}
 	//------------- DEBUG -----------------------------
 	if (g_settings.debugRs232 == 7) {
-		char buffer[DEBUG_CHARS+1];
-		buffer[DEBUG_CHARS] = '\0';
-		uint16_t mah = g_state.batteryCharged/(60*60);
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("Charger: %umV %imA %i:%limAs %lumAs (%umAh) Mode:%u State:%u CoutDown:%u Idle:%u LoBat:%u eff:%u\r\n"),
+		uint16_t mah = g_state.batteryCharged/(60UL*60UL);
+		DbgPrintf_P(PSTR("Charger: %umV %imA %i:%limAs %lumAs (%umAh) Mode:%u State:%u CoutDown:%u Idle:%u LoBat:%u eff:%u\r\n"),
 		  g_state.batVoltage, g_state.chargerCurrent,
 		  g_state.chargerCharged60iter, (long int)g_state.chargerCharged60,
 		  (long unsigned int)g_state.batteryCharged, mah, g_settings.chargerMode, g_state.chargerState,
 		  g_state.chargerCd, g_state.chargerIdle, g_state.batLowWarningCd, efficiency);
-		rs232_sendstring(buffer);
 	}
 }

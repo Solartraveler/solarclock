@@ -1,5 +1,5 @@
-/* Matrix-Simpleclock
-  (c) 2014-2016 by Malte Marwedel
+/* Matrix-Advancedclock
+  (c) 2014-2017 by Malte Marwedel
   www.marwedels.de/malte
 
   This program is free software; you can redistribute it and/or modify
@@ -31,6 +31,7 @@
 
 #include "dcf77.h"
 #include "rs232.h"
+#include "debug.h"
 #include "clocks.h"
 #include "displayRtc.h"
 #include "config.h"
@@ -38,6 +39,10 @@
 
 
 #include "dcf77statisticsdecode.h"
+
+#ifdef ADVANCEDCLOCK
+#include "logger.h"
+#endif
 
 //allowed: 2...16
 #define DCF77HISTORY DCF77DATAMINUTES
@@ -166,7 +171,7 @@ void dcf77_disable(void) {
 	PORTD.OUTCLR = 0xC0;
 	PORTD.DIRCLR = 0xC0;
 	TCD0.CTRLA = TC_CLKSEL_OFF_gc;
-	PR_PRPD |= (PR_TC0_bm); //power the timer
+	PR_PRPD |= (PR_TC0_bm); //power the timer off
 	g_dcf77enabled = 0;
 }
 
@@ -177,6 +182,10 @@ void dcf77_getstatus(char * targetstring) {
 	sprintf_P(targetstring, PSTR("%s %i%%"), g_dcf77enabled ? "On" : "Off", g_dcf77signalquality);
 }
 
+/* Returns the sampled data byte for a given second (index) and a given minute
+(history minute).
+minutestart must be the index with the minute marker.
+*/
 static uint8_t d77x(uint8_t minutestart, uint8_t index, uint8_t historyminute) {
 	index += minutestart + 1;
 	if (index >= DCF77SECONDS) {
@@ -188,13 +197,11 @@ static uint8_t d77x(uint8_t minutestart, uint8_t index, uint8_t historyminute) {
 	return sample;
 }
 
-static uint8_t dcf77_analyze(uint8_t startindex) {
+uint8_t dcf77_analyze(uint8_t startindex) {
 	uint8_t minute = 0, hour = 0, day = 0, month = 0, year2digit = 0;
 	uint16_t errorrate = 0;
 	uint8_t datamod[DCF77DIAGRAMSIZE*DCF77DATAMINUTES];
 	uint8_t updated = 0;
-	char buffer[DEBUG_CHARS+1];
-	buffer[DEBUG_CHARS] = '\0';
 	if (g_dcf77samplestaken <= (DCF77DATAMINUTES * SECONDSINMINUTE - DCF77MINUTEOFFSET)) {
 		//not enough data to analyze
 		return 0;
@@ -206,8 +213,8 @@ static uint8_t dcf77_analyze(uint8_t startindex) {
 		}
 	}
 	if (g_settings.debugRs232 == 0xB) {
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("DCF77 data:\r\n"));
-		rs232_sendstring(buffer);
+		char buffer[DCF77DIAGRAMSIZE+3];
+		DbgPrintf_P(PSTR("DCF77 data:\r\n"));
 		for (int i = 0; i < DCF77DATAMINUTES; i++) {
 			for (int j = 0; j < DCF77DIAGRAMSIZE; j++) {
 				buffer[j] = datamod[i*DCF77DIAGRAMSIZE+j] + 'A';
@@ -222,12 +229,11 @@ static uint8_t dcf77_analyze(uint8_t startindex) {
 	uint8_t result = dcf77_statisticsdecode(datamod, &minute, &hour, &day, &month, &year2digit, &errorrate);
 	clock_normalspeed();
 	if (g_settings.debugRs232 == 0xB) {
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("result: %i error:%i %i:%02i\r\n"), result, errorrate, hour, minute);
-		rs232_sendstring(buffer);
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("20%02i-%02i-%02i\r\n"), year2digit, month, day);
-		rs232_sendstring(buffer);
+		DbgPrintf_P(PSTR("result: %i error:%i %i:%02i\r\n"), result, errorrate, hour, minute);
+		DbgPrintf_P(PSTR("20%02i-%02i-%02i\r\n"), year2digit, month, day);
 	}
 	if ((result == 2) && (errorrate <= (g_settings.dcf77Level * DCF77DATAMINUTES))) {
+#ifndef ADVANCEDCLOCK
 		uint16_t dof = dayofyear(day-1, month-1, year2digit);
 		uint32_t utime = (uint32_t)minute*60 +
 		                 (uint32_t)hour*60*60 +
@@ -235,12 +241,58 @@ static uint8_t dcf77_analyze(uint8_t startindex) {
 		                 secondssince2000(year2digit) +
 		                 (DCF77DATAMINUTES-1) * SECONDSINMINUTE - 1;
 		if (g_settings.debugRs232 == 0xB) {
-			snprintf_P(buffer, DEBUG_CHARS, PSTR("dof=%i utime=%lu\r\n"), dof, (long unsigned)utime);
-			rs232_sendstring(buffer);
+			DbgPrintf_P(PSTR("dof=%i utime=%lu\r\n"), dof, (long unsigned)utime);
 		}
 		g_state.time = utime;
 		g_state.dcf77Synced = 1;
 		updated = 1;
+#else
+		uint32_t utime = timestampFromDate(day-1, month-1, year2digit,
+		                 (uint32_t)minute*60 +
+		                 (uint32_t)hour*60*60 +
+		                 (DCF77DATAMINUTES-1) * SECONDSINMINUTE - 1);
+		//second verify, as there are sometimes still wrong times getting through the check (P<0.5%)
+		int32_t errorBetweenSync = utime - g_state.time;
+		if ((g_state.dcf77Synced == 0) ||
+		    ((errorBetweenSync > -60) && (errorBetweenSync < 60)) ||
+		     (errorrate <= ((g_settings.dcf77Level *4 / 5) * DCF77DATAMINUTES))) { //if already synced, time delta must be small or extra low error (80% of common one)
+			if (g_settings.debugRs232 == 0xB) {
+				uint16_t dof = dayofyear(day-1, month-1, year2digit);
+				DbgPrintf_P(PSTR("dof=%i utime=%lu\r\n"), dof, (long unsigned)utime);
+			}
+			loggerlog_synced(utime, errorrate);
+			if ((utime > g_state.timeStampLastSync) &&
+			    (g_state.dcf77Synced)) {
+				if ((errorBetweenSync > -30) && (errorBetweenSync < 30)) {
+					uint32_t secondsBetweenSync = utime - g_state.timeStampLastSync;
+					if (secondsBetweenSync) {
+						int32_t dayDeltaMs = errorBetweenSync * (24L*60L*60L*100L) / (int32_t)secondsBetweenSync; //mul by 1000 would result in a int32 overflow
+						dayDeltaMs *= 10;
+						if (g_settings.debugRs232 == 0xB) {
+							DbgPrintf_P(PSTR("errorSync =%li DeltaLastSync=%lu, Error=%lims/d\r\n"), (long)errorBetweenSync, (unsigned long)secondsBetweenSync, (long)dayDeltaMs);
+						}
+						dayDeltaMs += g_state.timeLastDelta;
+						if ((dayDeltaMs >= TIMECALIB_MIN) && (dayDeltaMs <= TIMECALIB_MAX)) {
+							g_state.timeLastDelta = dayDeltaMs;
+						}
+					}
+				}
+			}
+			g_state.time = utime;
+			g_state.timeStampLastSync = utime;
+			g_state.timescache = g_state.time % 60;
+			g_state.timemcache = (g_state.time / 60) % 60;
+			g_state.timehcache = (g_state.time / (60*60)) % 24;
+			g_state.dcf77Synced = 1;
+			//normally ignore summertime bits, but use it for the one undefined hour in the year
+			//bit 17 = 1 for summertime, bit 18 = for winter time.
+			uint8_t dcfsayssummertime = d77x(startindex, 17, DCF77DATAMINUTES - 1) > d77x(startindex, 18, DCF77DATAMINUTES - 1) ? 1 : 0;
+			g_state.summertime = isSummertime(utime, dcfsayssummertime);
+			updated = 1;
+			g_state.accumulatedErrorCycles = 0;
+			g_state.badCyclesRoundingError = 0;
+		}
+#endif
 	}
 	return updated;
 }
@@ -332,10 +384,7 @@ uint8_t dcf77_update(void) {
 			newval = DCF77PERMAX;
 		}
 		if (g_settings.debugRs232 == 0xB) {
-			char buffer[DEBUG_CHARS+1];
-			buffer[DEBUG_CHARS] = '\0';
-			snprintf_P(buffer, DEBUG_CHARS, PSTR("adj %u>%u\r\n"), TCD0.PER, newval);
-			rs232_sendstring(buffer);
+			DbgPrintf_P(PSTR("adj %u>%u\r\n"), TCD0.PER, newval);
 		}
 		TCD0.PERBUF = newval;
 		g_dcf77nodeltacounter = 0;
@@ -418,15 +467,13 @@ uint8_t dcf77_update(void) {
 		rs232_putchar('\n');
 		rs232_putchar('\r');
 		for (i = 0; i < posmax; i++) {
-			rs232_sendstring("  ");
+			rs232_sendstring_P(PSTR("  "));
 		}
-		rs232_sendstring("# ");
+		rs232_sendstring_P(PSTR("# \r\n"));
 	}
 #ifdef DCF77DEBUGBITSIGNAL
 	{
-		char buffer[DEBUG_CHARS+1];
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("pos %u, max: %u carr: %u sig: %u\r\n"), (uint16_t)posmax, summax, (uint16_t)carriersignal, (uint16_t)positive);
-		rs232_sendstring(buffer);
+		DbgPrintf_P(PSTR("pos %u, max: %u carr: %u sig: %u\r\n"), (uint16_t)posmax, summax, (uint16_t)carriersignal, (uint16_t)positive);
 	}
 #endif
 	return updated;

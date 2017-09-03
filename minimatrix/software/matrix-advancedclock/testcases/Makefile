@@ -1,5 +1,5 @@
 COMPILER=gcc
-FLAGS=-Wall -Wextra -DUNIT_TEST -g -std=c99
+FLAGS=-Wall -Wextra -DUNIT_TEST -DADVANCEDCLOCK -g -std=c99
 
 all:
 	$(COMPILER) -c testfinecalib.c $(FLAGS)

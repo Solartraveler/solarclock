@@ -49,6 +49,7 @@
 #include "debug.h"
 #include "touch.h"
 #include "finecalib.h"
+#include "stack.h"
 
 
 settings_t g_settings; //permanent settings
@@ -186,14 +187,11 @@ static void update_consumption(void) {
 	}
 	g_state.consumption += uas; //64 bit addition
 	if (g_settings.debugRs232 == 0xA) {
-		char buffer[DEBUG_CHARS+1];
-		buffer[DEBUG_CHARS] = '\0';
 		//the sprintf implementation does not support %llu, so values will be wrong
 		//after an extended period
 		uint32_t delta = g_state.consumption - consumptionOld;
 		uint32_t cons = g_state.consumption;
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("Consume: %luuAs (+%luuA)\r\n"), cons, delta);
-		rs232_sendstring(buffer);
+		DbgPrintf_P(PSTR("Consume: %luuAs (+%luuA)\r\n"), cons, delta);
 	}
 }
 
@@ -256,10 +254,7 @@ static void update_ldr(void) {
 	}
 	g_state.ldr = (workmode << 14) | v;
 /*
-	char buffer[DEBUG_CHARS+1];
-	buffer[DEBUG_CHARS] = '\0';
-	snprintf(buffer, DEBUG_CHARS, "0x%x\r\n", g_ldr);
-	rs232_sendstring(buffer);
+	DbgPrintf_P(PSTR("0x%x\r\n"), g_ldr);
 */
 }
 
@@ -403,15 +398,11 @@ static void update_display_brightnessAdjust(void) {
 	}
 	//debug output:
 	if (g_settings.debugRs232 == 3) {
-		char buffer[DEBUG_CHARS+1];
-		buffer[DEBUG_CHARS] = '\0';
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("BrVals: %u %i %i %i %i %i\r\n"),
+		DbgPrintf_P(PSTR("BrVals: %u %i %i %i %i %i\r\n"),
 		g_state.ldr, g_state.brightnessLdr, g_settings.brightness,
   	brightdelta, newbrightness, g_settings.brightnessAuto);
-		rs232_sendstring(buffer);
 		if ((g_state.powersaveEnabled) && (g_state.displayNoOffCd)) {
-			snprintf_P(buffer, DEBUG_CHARS, PSTR("Powersave in %is\r\n"), g_state.displayNoOffCd);
-			rs232_sendstring(buffer);
+			DbgPrintf_P(PSTR("Powersave in %is\r\n"), g_state.displayNoOffCd);
 		}
 	}
 }
@@ -465,8 +456,6 @@ static uint8_t irKeysRead(void) {
 	uint8_t key = 0;
 	uint8_t numkeys = 0;
 	uint16_t avg = 0;
-	char buffer[DEBUG_CHARS+1];
-	buffer[DEBUG_CHARS] = '\0';
 	irKeyPowerup();
 	adca_startup();
 	adca_getQuad(3, 4, 5, 6, ADC_REFSEL_VCC_gc, val);
@@ -497,13 +486,11 @@ static uint8_t irKeysRead(void) {
 	adca_stop();
 	g_state.keyDebugAd = val[1];
 	if (g_settings.debugRs232 == 4) {
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("IR %u %u %u %u\r\n"), val[0], val[1], val[2], val[3]);
-		rs232_sendstring(buffer);
+		DbgPrintf_P(PSTR("IR %u %u %u %u\r\n"), val[0], val[1], val[2], val[3]);
 	}
 	if (numkeys == 1) {
 		if (g_settings.debugRs232) {
-			snprintf_P(buffer, DEBUG_CHARS, PSTR("Pressed %c\r\n"), 'A'+key-1);
-			rs232_sendstring(buffer);
+			DbgPrintf_P(PSTR("Pressed %c\r\n"), 'A'+key-1);
 		}
 		return key;
 	}
@@ -528,10 +515,7 @@ static uint8_t rc5keyget(void) {
 	uint16_t rc5data = rc5getdata();
 	if (rc5data) {
 		if (g_settings.debugRs232 == 0xD) {
-			char buffer[DEBUG_CHARS+1];
-			buffer[DEBUG_CHARS] = '\0';
-			snprintf_P(buffer, DEBUG_CHARS, PSTR("RC-5: 0x%x\r\n"), rc5data);
-			rs232_sendstring(buffer);
+			DbgPrintf_P(PSTR("RC-5: 0x%x\r\n"), rc5data);
 		}
 		rc5data &= ~0x800; //mask out toggle bit
 		if ((g_state.rc5entermode) && (g_state.rc5entermode <= RC5KEYS)) {
@@ -600,6 +584,8 @@ static void update_rfm12control(void) {
 			rfm12_standby();
 		}
 		g_state.rfm12modeis = modeshould;
+		//some brightness values result in a non working RFM12 - need to avoid
+		disp_configure_set(g_state.brightness, g_settings.displayRefresh);
 	}
 	DEBUG_FUNC_LEAVE(update_rfm12control);
 }
@@ -802,11 +788,8 @@ static void update_performance(void) {
 	g_state.performanceCpuRunning = percCpu;
 	//debug keep alive
 	if ((g_settings.debugRs232 >= 1) && (g_state.printPing)) {
-		char buffer[DEBUG_CHARS+1];
-		buffer[DEBUG_CHARS] = '\0';
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("Ping R:%u%% C:%u%%\r\n"), (uint16_t)percRc * 100 /256, (uint16_t)percCpu * 100 /256);
-		//snprintf_P(buffer, DEBUG_CHARS, PSTR("Ping R:%u C:%u\r\n"), rcOn, cpuOn);
-		rs232_sendstring(buffer);
+		DbgPrintf_P(PSTR("Ping R:%u%% C:%u%%\r\n"), (uint16_t)percRc * 100 /256, (uint16_t)percCpu * 100 /256);
+		//DbgPrintf_P(PSTR("Ping R:%u C:%u\r\n"), rcOn, cpuOn);
 	}
 }
 
@@ -922,12 +905,7 @@ static void run1xS(void) {
 		g_state.displayNoOffCd--;
 	}
 
-#if 0
-	char buffer[DEBUG_CHARS+1];
-	buffer[DEBUG_CHARS] = '\0';
-	snprintf_P(buffer, DEBUG_CHARS, PSTR(" Resync in: %lu\r\n"), (unsigned long)g_state.dcf77ResyncCd);
-	rs232_sendstring(buffer);
-#endif
+	//DbgPrintf_P(PSTR(" Resync in: %lu\r\n"), (unsigned long)g_state.dcf77ResyncCd);
 
 	//calc time to dcf77 resync
 	if (g_state.dcf77ResyncCd) {
@@ -967,10 +945,7 @@ static uint8_t reset_print(void) {
 		rs232_sendstring_P(PSTR(" Brownout"));
 	}
 	if (resetsource & 0x8) {
-		char buffer[DEBUG_CHARS+1];
-		buffer[DEBUG_CHARS] = '\0';
-		snprintf_P(buffer, DEBUG_CHARS, PSTR(" Watchdog, trace: %u"), g_debug);
-		rs232_sendstring(buffer);
+		DbgPrintf_P(PSTR(" Watchdog, trace: %u"), g_debug);
 	} else {
 		g_debug = 0;
 	}
@@ -1034,7 +1009,7 @@ int main(void) {
 	stackCheckInit(); //must be called before enabling ints
 	disp_rtc_setup();
 	g_settings.debugRs232 = 1; //gets overwritten by config_load() anyway
-	rs232_sendstring_P(PSTR("Advanced-Clock V0.7\r\n"));
+	rs232_sendstring_P(PSTR("Advanced-Clock V0.8\r\n"));
 	g_state.printPing = 1;
 	config_load();
 	g_state.batteryCharged = g_settings.batteryCapacity;

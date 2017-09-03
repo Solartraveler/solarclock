@@ -25,6 +25,7 @@
 #include "config.h"
 #include "rs232.h"
 #include "main.h"
+#include "debug.h"
 
 #define ADCACAL0_offset 0x20
 #define ADCBCAL0_offset 0x24
@@ -54,10 +55,7 @@ static void adca_calibrate(void) {
 	uint16_t cal = adc_getCalibration(PROD_SIGNATURES_START+ADCACAL0_offset);
 	ADCA_CAL = cal;
 	if (g_settings.debugRs232 == 8) {
-		char buffer[DEBUG_CHARS+1];
-		buffer[DEBUG_CHARS] = '\0';
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("ADCA calib=%u(0x%x)\r\n"), cal, cal);
-		rs232_sendstring(buffer);
+		DbgPrintf_P(PSTR("ADCA calib=%u(0x%x)\r\n"), cal, cal);
 	}
 }
 
@@ -65,10 +63,7 @@ static void adcb_calibrate(void) {
 	uint16_t cal = adc_getCalibration(PROD_SIGNATURES_START+ADCBCAL0_offset);
 	ADCB_CAL = cal;
 	if (g_settings.debugRs232 == 8) {
-		char buffer[DEBUG_CHARS+1];
-		buffer[DEBUG_CHARS] = '\0';
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("ADCB calib=%u(0x%x)\r\n"), cal, cal);
-		rs232_sendstring(buffer);
+		DbgPrintf_P(PSTR("ADCB calib=%u(0x%x)\r\n"), cal, cal);
 	}
 }
 

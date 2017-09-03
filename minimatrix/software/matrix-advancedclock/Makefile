@@ -2,9 +2,9 @@ TARGET=main
 MCU=atxmega64a1
 OPT=-Os
 OPTFAST=-Ofast
-DEFINES=-DAVR_BUILD
+DEFINES=-DAVR_BUILD -DADVANCEDCLOCK
 
-OBJ = $(TARGET).o touch.o charger.o gui.o config.o rs232.o displayRtc.o menu-interpreter.o menu-text.o sound.o dcf77.o clocks.o rfm12.o adc.o timeconvert.o dcf77statisticsdecode.o pintest.o twi_master_driver.o  rc5decoder.o logger.o i2ceeprom.o finecalib.o debug.o
+OBJ = $(TARGET).o touch.o charger.o gui.o config.o rs232.o displayRtc.o menu-interpreter.o menu-text.o sound.o dcf77.o clocks.o rfm12.o adc.o timeconvert.o dcf77statisticsdecode.o pintest.o twi_master_driver.o  rc5decoder.o logger.o i2ceeprom.o finecalib.o debug.o stack.o
 INCLUDES = $(wildcard *.h)
 
 all: $(OBJ)

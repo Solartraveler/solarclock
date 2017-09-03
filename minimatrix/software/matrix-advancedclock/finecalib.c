@@ -31,6 +31,7 @@
 
 #include "main.h"
 #include "rs232.h"
+#include "debug.h"
 
 #else
 
@@ -61,10 +62,7 @@ void updateFineCalib(void) {
 	int32_t badCyclesMinute = thousandBadCyclesDay / (1000L*24L*60L);
 	int16_t aec = g_state.accumulatedErrorCycles + badCyclesMinute;
 	if (g_settings.debugRs232 == 0xB) {
-		char buffer[DEBUG_CHARS+1];
-		buffer[DEBUG_CHARS] = '\0';
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("badCyc=%li, roundE=%li, aec=%i\r\n"), (long int)thousandBadCyclesDay, (long int)g_state.badCyclesRoundingError, aec);
-		rs232_sendstring(buffer);
+		DbgPrintf_P(PSTR("badCyc=%li, roundE=%li, aec=%i\r\n"), (long int)thousandBadCyclesDay, (long int)g_state.badCyclesRoundingError, aec);
 	}
 	//printf("thousandBadCyclesDay=%i, roundingError=%i, minute=%i, aec=%i\n", thousandBadCyclesDay, g_state.badCyclesRoundingError, badCyclesMinute, aec);
 //	printf("CORRECTINGCYCLES=%i, F_RTC=%i, DIP_RTC_PER=%i\n", CORRECTINGCYCLES, F_RTC, DISP_RTC_PER);

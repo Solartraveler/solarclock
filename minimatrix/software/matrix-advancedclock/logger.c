@@ -26,6 +26,7 @@
 #include "config.h"
 #include "i2ceeprom.h"
 #include "rs232.h"
+#include "debug.h"
 #include "main.h"
 #include "displayRtc.h"
 #include "timeconvert.h"
@@ -88,12 +89,9 @@ static void logger_seekmax(void) {
 	uint16_t rangemin = 0;
 	uint16_t tocheck = 0;
 	uint32_t minnewid = 0;
-	char buffer[DEBUG_CHARS+1];
-	buffer[DEBUG_CHARS] = '\0';
 	logmessage_t message;
 	if (g_settings.debugRs232 == 0xC) {
-			snprintf_P(buffer, DEBUG_CHARS, PSTR("Log can store %u entries\r\n"), g_state.logger.maxentries);
-			rs232_sendstring(buffer);
+			DbgPrintf_P(PSTR("Log can store %u entries\r\n"), g_state.logger.maxentries);
 	}
 	while (rangemax > rangemin) {
 		if (logger_entryread(tocheck, &message)) { //not a valid log entry
@@ -112,8 +110,7 @@ static void logger_seekmax(void) {
 		}
 		tocheck = rangemin + ((rangemax - rangemin) / 2);
 		if (g_settings.debugRs232 == 0xC) {
-			snprintf_P(buffer, DEBUG_CHARS, PSTR("rangemin:%u rangemax:%u tocheck:%u minnewid:%u\r\n"), rangemin, rangemax, tocheck, minnewid);
-			rs232_sendstring(buffer);
+			DbgPrintf_P(PSTR("rangemin:%u rangemax:%u tocheck:%u minnewid:%u\r\n"), rangemin, rangemax, tocheck, minnewid);
 		}
 	}
 	//update state struct with result
@@ -122,34 +119,28 @@ static void logger_seekmax(void) {
 	if ((tocheck + 1) >= g_state.logger.maxentries) {
 		g_state.logger.nextentry = 0;
 	}
-	snprintf_P(buffer, DEBUG_CHARS, PSTR("Start log at %u id: %lu\r\n"), g_state.logger.nextentry, (unsigned long)minnewid);
-	rs232_sendstring(buffer);
+	DbgPrintf_P(PSTR("Start log at %u id: %lu\r\n"), g_state.logger.nextentry, (unsigned long)minnewid);
 }
 
 static void logger_initializemem(void) {
 	uint8_t preparesig[4] = {'L', 'o', 'g', 0};
 	uint8_t preparesigcheck[4];
-	char buffer[DEBUG_CHARS+1];
-	buffer[DEBUG_CHARS] = '\0';
 	i2ceep_writeblock(0, preparesig, 4);
 	i2ceep_readblock(0, preparesigcheck, 4);
 	if (memcmp(preparesig, preparesigcheck, 4)) {
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("R/W I2C EEPROM failed\r\n"));
-		rs232_sendstring(buffer);
+		DbgPrintf_P(PSTR("R/W I2C EEPROM failed\r\n"));
 		return;
 	}
 	uint16_t taddr = 2048; //if at >= 2k address ends in first address -> overflow found
 	uint8_t sizeindex = 1; //1k<<1 = minimum size we want to use
 	while (taddr) {
 		if (g_settings.debugRs232 == 0xC) {
-			snprintf_P(buffer, DEBUG_CHARS, PSTR("taddr: %u index: %u\r\n"), taddr, sizeindex);
-			rs232_sendstring(buffer);
+			DbgPrintf_P(PSTR("taddr: %u index: %u\r\n"), taddr, sizeindex);
 		}
 		i2ceep_writebyte(taddr + 3, sizeindex);
 		uint8_t first = i2ceep_readbyte(3);
 		if (g_settings.debugRs232 == 0xC) {
-			snprintf_P(buffer, DEBUG_CHARS, PSTR("got %u\r\n"), first);
-			rs232_sendstring(buffer);
+			DbgPrintf_P(PSTR("got %u\r\n"), first);
 		}
 		if (first != 0) {
 			//we had an address overflow -> size found
@@ -163,8 +154,7 @@ static void logger_initializemem(void) {
 		i2ceep_writebyte(3, sizeindex); //all other eeproms had their value already written by the overflow, but for 64k a test up to 128k would be needed
 	}
 	g_state.logger.maxentries = ((1024 * g_state.logger.ksize) - LOGGER_BASE_OFFSET) / sizeof(logmessage_t);
-	snprintf_P(buffer, DEBUG_CHARS, PSTR("New log in EEPROM with %ikB\r\n"), g_state.logger.ksize);
-	rs232_sendstring(buffer);
+	DbgPrintf_P(PSTR("New log in EEPROM with %ikB\r\n"), g_state.logger.ksize);
 }
 
 void logger_init(void) {
@@ -216,10 +206,7 @@ void logger_writemessage(uint8_t messagetype, uint8_t * datafield, uint8_t datas
 	uint16_t eepromaddr = g_state.logger.nextentry*sizeof(logmessage_t) + LOGGER_BASE_OFFSET;
 	//debug
 	if (g_settings.debugRs232 == 0xC) {
-		char buffer[DEBUG_CHARS+1];
-		buffer[DEBUG_CHARS] = '\0';
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("Log%lu type:%u at %u\r\n"), g_state.logger.nextid, messagetype, eepromaddr);
-		rs232_sendstring(buffer);
+		DbgPrintf_P(PSTR("Log%lu type:%u at %u\r\n"), g_state.logger.nextid, messagetype, eepromaddr);
 	}
 	//write to eeprom
 	if (i2ceep_writeblock(eepromaddr, (uint8_t *)&lmt, sizeof(logmessage_t)) == 0) {
@@ -270,8 +257,6 @@ static void logger_print_entry(uint16_t entryidx) {
 	}
 	if (g_state.logger.reportingmode == 2) {
 		//human readable appending
-		char buffer[DEBUG_CHARS+1];
-		buffer[DEBUG_CHARS] = '\0';
 		uint8_t year2digit, month, day;
 		uint32_t timeofday = dateFromTimestamp(entry.timestamp, &day, &month, &year2digit, NULL);
 		uint8_t s = timeofday  % 60;
@@ -280,22 +265,19 @@ static void logger_print_entry(uint16_t entryidx) {
 		uint16_t year = year2digit + 2000;
 		month++;
 		day++;
-		snprintf_P(buffer, DEBUG_CHARS, PSTR(" %7lu %04u-%02u-%02u %2u:%02u:%02u "), (unsigned long)entry.id, year, month, day, h, m, s);
-		rs232_sendstring(buffer);
+		DbgPrintf_P(PSTR(" %7lu %04u-%02u-%02u %2u:%02u:%02u "), (unsigned long)entry.id, year, month, day, h, m, s);
 		if (entry.messagetype == LOG_MESSAGE_DCFSYNC) {
 			uint16_t syncerror = entry.data.lsync.errorrate;
 			uint32_t newtime = entry.data.lsync.newtime;
 			int32_t delta = newtime - entry.timestamp;
-			snprintf_P(buffer, DEBUG_CHARS, PSTR("SYNC, delta: %lis, error: %u"), (signed long)delta, syncerror);
+			DbgPrintf_P(PSTR("SYNC, delta: %lis, error: %u"), (signed long)delta, syncerror);
 		}
 		if (entry.messagetype == LOG_MESSAGE_REBOOT) {
 			uint32_t rebootnum = entry.data.lreboot.rebootnum;
 			uint8_t cause = entry.data.lreboot.rebootcause;
 			uint8_t debug = entry.data.lreboot.debugtrace;
 			uint8_t debugint = entry.data.lreboot.debuginttrace;
-			snprintf_P(buffer, DEBUG_CHARS, PSTR("REBO, %lu, cause:"), (unsigned long)rebootnum);
-			rs232_sendstring(buffer);
-			buffer[0] = '\0';
+			DbgPrintf_P(PSTR("REBO, %lu, cause:"), (unsigned long)rebootnum);
 			if (cause & 0x1) {
 				rs232_sendstring_P(PSTR(" PowerOn"));
 			}
@@ -306,8 +288,7 @@ static void logger_print_entry(uint16_t entryidx) {
 				rs232_sendstring_P(PSTR(" Brownout"));
 			}
 			if (cause & 0x8) {
-				rs232_sendstring_P(PSTR(" Watchdog"));
-				snprintf_P(buffer, DEBUG_CHARS, PSTR(" trace: %u inttrace: %u"), debug, debugint);
+				DbgPrintf_P(PSTR(" Watchdog trace: %u inttrace: %u"), debug, debugint);
 			}
 			if (cause & 0x10) {
 				rs232_sendstring_P(PSTR(" Debug"));
@@ -324,10 +305,9 @@ static void logger_print_entry(uint16_t entryidx) {
 			uint32_t consumed = entry.data.lbattery.consumed;
 			uint16_t templ = temperature10th / 10;
 			uint16_t tempr = temperature10th % 10;
-			snprintf_P(buffer, DEBUG_CHARS, PSTR("BATT, %umV, bat: %umAh, %imA %u.%u°C, consumed: %lumAh"),
+			DbgPrintf_P(PSTR("BATT, %umV, bat: %umAh, %imA %u.%u°C, consumed: %lumAh"),
 			           voltage, batCharged, current, templ, tempr, (unsigned long)consumed);
 		}
-		rs232_sendstring(buffer);
 	}
 	rs232_sendstring_P(PSTR("\r\n"));
 }

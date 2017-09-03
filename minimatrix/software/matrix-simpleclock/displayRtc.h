@@ -13,6 +13,7 @@ void disp_configure_set(uint8_t brightness, uint16_t refreshrate);
 
 void rtc_waitsafeoff(void);
 
+#ifdef ADVANCEDCLOCK
 
 /*+1, +2 count slower, -1, -2 count faster, 0 count as expected
 This is relative to one tick of the crystal and DISP_RTC_PER
@@ -23,5 +24,7 @@ F_RTC / DISP_RTC_PER * 60 = extra F_RTC cycles slower
 since every cycle is 1/32768sec -> Counting one minute takes 14.6ms longer.
 */
 void rtc_finecalib(int8_t direction);
+
+#endif
 
 #endif

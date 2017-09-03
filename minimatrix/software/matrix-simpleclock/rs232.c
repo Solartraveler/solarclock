@@ -48,13 +48,11 @@ ISR(RS232_ISR_VECT) {
 			bufferrp = 0;
 		}
 		g_rs232bufferrp = bufferrp;
-	} else {
-		if ((g_rs232starttransmit == 0) && (g_rs232userx == 0)) {
-			RS232_PORT.DIRCLR = 1<<RS232_TX_PIN_NR;
-			RS232_PORT.RS232_TX_PIN = PORT_ISC0_bm | PORT_ISC1_bm | PORT_ISC2_bm | PORT_OPC_PULLUP_gc; //pull up + input disable
-			USART.CTRLB = 0; //disable TX
-			PWRSAVEREG |= PWRSAVEBIT;
-		}
+	} else if ((g_rs232starttransmit == 0) && (g_rs232userx == 0)) {
+		RS232_PORT.DIRCLR = 1<<RS232_TX_PIN_NR;
+		RS232_PORT.RS232_TX_PIN = PORT_ISC0_bm | PORT_ISC1_bm | PORT_ISC2_bm | PORT_OPC_PULLUP_gc; //pull up + input disable
+		USART.CTRLB = 0; //disable TX
+		PWRSAVEREG |= PWRSAVEBIT;
 	}
 }
 

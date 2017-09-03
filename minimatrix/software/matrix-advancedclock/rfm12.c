@@ -311,10 +311,7 @@ OPTIMIZER uint16_t rfm12_showstatus(void) {
 	uint16_t status = rfm12_status();
 	uint8_t irqstate1 = rfm12_irqstatus();
 	if (g_settings.debugRs232 == 6) {
-		char buffer[DEBUG_CHARS+1];
-		buffer[DEBUG_CHARS] = '\0';
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("RFM12 stat: 0x%x irq %u->%u\r\n"), status, irqstate0, irqstate1);
-		rs232_sendstring(buffer);
+		DbgPrintf_P(PSTR("RFM12 stat: 0x%x irq %u->%u\r\n"), status, irqstate0, irqstate1);
 	}
 	return status;
 }
@@ -350,13 +347,10 @@ void rfm12_showstats(void) {
 	uint32_t duppacket = rfm12_duppacket;
 	_MemoryBarrier(); //as the interrupt variables are not volatile
 	sei();
-	char buffer[DEBUG_CHARS+1];
-	buffer[DEBUG_CHARS] = '\0';
 	//casting is only done to satisfy x86 and amd64.
-	snprintf_P(buffer, DEBUG_CHARS, PSTR("RFM12 txdata:%lu txact:%lu retr:%lu, abort:%lu, crcerr:%lu dup:%lu\r\n"),
+	DbgPrintf_P(PSTR("RFM12 txdata:%lu txact:%lu retr:%lu, abort:%lu, crcerr:%lu dup:%lu\r\n"),
 	 (long unsigned int)txpackets,(long unsigned int)txacts, (long unsigned int)txretries,
 	 (long unsigned int)txaborts, (long unsigned int)crcerrors, (long unsigned int)duppacket);
-	rs232_sendstring(buffer);
 }
 
 uint16_t rfm12_txbufferfree(void) {

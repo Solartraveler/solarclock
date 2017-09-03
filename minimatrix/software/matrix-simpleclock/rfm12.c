@@ -51,6 +51,7 @@ I used 0x8201 and now it sleeps and draws only about 10µA
 
 #include "rs232.h"
 #include "config.h"
+#include "debug.h"
 
 #define RFM12_NINT 3
 #define RFM12_SELECT 4
@@ -149,10 +150,7 @@ void rfm12_portinit(void) {
 uint16_t rfm12_showstatus(void) {
 	uint16_t status = rfm12_status();
 	if (g_settings.debugRs232 == 6) {
-		char buffer[DEBUG_CHARS+1];
-		buffer[DEBUG_CHARS] = '\0';
-		snprintf_P(buffer, DEBUG_CHARS, PSTR("RFM12 stat: 0x%x\r\n"), status);
-		rs232_sendstring(buffer);
+		DbgPrintf_P(PSTR("RFM12 stat: 0x%x\r\n"), status);
 	}
 	return status;
 }

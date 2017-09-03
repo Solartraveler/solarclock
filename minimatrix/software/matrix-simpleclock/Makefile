@@ -4,7 +4,7 @@ OPT=-Os
 OPTFAST=-Ofast
 DEFINES=-DAVR_BUILD
 
-OBJ = $(TARGET).o charger.o gui.o config.o rs232.o displayRtc.o menu-interpreter.o menu-text.o sound.o dcf77.o clocks.o rfm12.o adc.o timeconvert.o dcf77statisticsdecode.o
+OBJ = $(TARGET).o charger.o gui.o config.o rs232.o displayRtc.o menu-interpreter.o menu-text.o sound.o dcf77.o clocks.o rfm12.o adc.o timeconvert.o dcf77statisticsdecode.o debug.o
 INCLUDES = $(wildcard *.h)
 
 all: $(OBJ)

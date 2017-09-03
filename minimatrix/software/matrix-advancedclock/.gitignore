@@ -5,6 +5,7 @@
 *.lss
 *.epp
 *.zip
+*.map
 menudata.bin
 testcases/runtestcases
 linux-gui/demo-main
