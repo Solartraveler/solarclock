@@ -37,6 +37,26 @@ ENDDATE=`cat "$FILENAME.txt" | tail -n 1 | cut -d " " -f 1`
 STARTDATE2=`date -d"$STARTDATE" +%d.%m.%Y`
 ENDDATE2=`date -d"$ENDDATE" +%d.%m.%Y`
 
+#it can be 25hours if summmer -> winter time switch occurrs
+oneday=$(expr 25 \* 60 \* 60)
+timestamplast=`date -d "$STARTDATE" +%s`
+
+
+while read datec timec voltage battery current
+do
+	timestamp=`date -d $datec +%s`
+	timestamplastoneday=$(expr "$timestamplast" + "$oneday")
+	if [ "$timestamp" -gt "$timestamplastoneday" ];
+	then
+		echo "" >> "$FILENAME-temp.txt"
+	fi
+	echo "$datec $timec $voltage $battery $current" >> "$FILENAME-temp.txt"
+	timestamplast=$timestamp
+done < "$FILENAME.txt"
+
+mv "$FILENAME-temp.txt" "$FILENAME.txt"
+
+
 echo '\
 set encoding utf8;\
 set title "Charger state from '$STARTDATE2' to '$ENDDATE2'";\

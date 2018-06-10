@@ -38,15 +38,18 @@
 #define DISP_COLUMS MENU_SCREEN_X
 #define DISP_COLUM_BYTES ((DISP_COLUMS+7)/8)
 #define DISP_TOTAL_BYTES (DISP_COLUM_BYTES*DISP_ROWS)
-#define DISP_REFRESH_RATE 100
 
 /*
 Tests have shown that the flicker (loose of interrupt) is gone if the compare
   value is always increased by at least 7.
   A value of 6 has several misses per second.
   constant evaluates to 428 with cycles = 7:
+Update:
+  As a value of 7 still does result in occassional flicker when RC power saving
+  is enabled (FBugfix = Fix off), we increase the value to 8, however all values
+  in the explanations are still valid for a value of 7.
 */
-#define RTC_REQUIRED_SYNC_CYCLES 7
+#define RTC_REQUIRED_SYNC_CYCLES 8
 
 #define DISP_WITHIN_INT_LIMIT (F_CPU*RTC_REQUIRED_SYNC_CYCLES/F_RTC)
 

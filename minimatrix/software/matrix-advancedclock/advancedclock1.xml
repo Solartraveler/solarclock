@@ -104,7 +104,7 @@
     <label Xpos="0" Ypos="0" font="14" text="Display" number="1" multilang="0" storagemethod="0"/>
     <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
     <shortcut action="" number="3" screen="window 39" shortcutkey="2"/>
-    <shortcut action="" number="4" screen="window 85" shortcutkey="3"/>
+    <shortcut action="" number="4" screen="window 125" shortcutkey="3"/>
     <shortcut action="ShowDispbrightOn" number="5" screen="window 17" shortcutkey="4"/>
   </window>
   <window number="39" comment="MC - Always on" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
@@ -194,9 +194,16 @@
   <window number="85" comment="MC - Power save weekdays" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="PSv Wd" number="1" multilang="0" storagemethod="0"/>
     <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
-    <shortcut action="" number="3" screen="window 7" shortcutkey="2"/>
+    <shortcut action="" number="3" screen="window 125" shortcutkey="2"/>
     <shortcut action="" number="4" screen="window 84" shortcutkey="3"/>
     <shortcut action="ShowPowersaveweekOn" number="5" screen="window 91" shortcutkey="4"/>
+  </window>
+  <window number="125" comment="MC - Power save battery percentage" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="15" text="PSv Bat" number="1" multilang="0" storagemethod="0"/>
+    <shortcut action="" number="2" screen="window 33" shortcutkey="1"/>
+    <shortcut action="" number="3" screen="window 7" shortcutkey="2"/>
+    <shortcut action="" number="4" screen="window 85" shortcutkey="3"/>
+    <shortcut action="ShowPowersaveweekOn" number="5" screen="window 126" shortcutkey="4"/>
   </window>
   <window number="17" comment="C - Set display brightness" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="Brightness" number="1" multilang="0" storagemethod="1"/>
@@ -287,6 +294,12 @@
     <shortcut action="PowersaveweekDec" number="3" screen="" shortcutkey="2"/>
     <shortcut action="PowersaveweekInc" number="4" screen="" shortcutkey="3"/>
     <shortcut number="5" shortcutkey="4" action="PowersaveweekNext" screen=""/>
+  </window>
+  <window number="126" comment="C - Power save battery" focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
+    <label Xpos="0" Ypos="0" font="14" text="Powersavebattery" number="1" multilang="0" storagemethod="1"/>
+    <shortcut action="" number="2" screen="window 125" shortcutkey="1"/>
+    <shortcut action="PowersavebatDec" number="3" screen="" shortcutkey="2"/>
+    <shortcut action="PowersavebatInc" number="4" screen="" shortcutkey="3"/>
   </window>
   <window number="1" comment="MD - Voltage&#xA;Input voltage. Equal to battery voltage if no charging occurrs." focusNextKey="0" focusPrevKey="0" focusEnterKey="0">
     <label Xpos="0" Ypos="0" font="14" text="Volt in" number="1" multilang="0" storagemethod="0"/>

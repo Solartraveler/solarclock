@@ -11,6 +11,10 @@
 #define CONSUMPTIONLEDONEMAX_MIN 100
 #define CONSUMPTIONLEDONEMAX_MAX 1000
 
+//mAh the user can set as maximum
+#define BATTERYCAPACITY_MAX 3000
+#define BATTERYCAPACITY_MIN 600
+
 #define DCF77LEVEL_NORMAL 60
 #define DCF77LEVEL_MAX 150
 #define DCF77LEVEL_MIN 2
@@ -85,11 +89,12 @@ typedef struct {
 	//new settings start here
 	uint16_t rfm12passcode; //initial number which must be entered in order to accept commands. 0...999
 	uint8_t summertimeadjust; //0 = no summer time adjust, 1 = summer time adjust
-	uint8_t loggerPeriod; //[hour] until resync of dcf after last sync stopped
-	uint8_t dcf77Period; //[hour] how often a log is written
+	uint8_t loggerPeriod; //[hours] until resync of dcf after last sync stopped
+	uint8_t dcf77Period; //[hours] how often a log is written
 	uint8_t flickerWorkaround; //if 1, workaround for display flicker is enabled (at the cost of more power consumption)
 	int16_t timeCalib; //[ms] the clock should go faster or slower each day
-	uint8_t reserved[29]; //decrease if new settings get in, so no crc mismatch on next start
+	uint8_t powersaveBatteryBelow; //[%] only enable powersave if battery is below this threshold
+	uint8_t reserved[28]; //decrease if new settings get in, so no crc mismatch on next start
 } settings_t;
 
 typedef struct {
@@ -177,6 +182,7 @@ extern sysstate_t g_state; //floating state of main program
 void config_load(void);
 void config_save(void);
 
+void config_print(void);
 
 #endif
 

@@ -295,7 +295,6 @@ uint8_t updatePowersaveweekText(void) {
 	return 1;
 }
 
-
 uint8_t updateTimerText(void) {
 	if (g_state.timerCountdownSecs) {
 		uint8_t h = g_state.timerCountdownSecs / (60*60);
@@ -388,6 +387,7 @@ static void updateText(void) {
 	sprintf_P((char*)menu_strings[MENU_TEXT_Dcf77Period], PSTR("D P: %ih"), g_settings.dcf77Period);
 	sprintf_P((char*)menu_strings[MENU_TEXT_LoggerPeriod], PSTR("L P: %ih"), g_settings.loggerPeriod);
 	sprintf_P((char*)menu_strings[MENU_TEXT_ClockCalibrate], PSTR("%ims/d"), g_settings.timeCalib);
+	sprintf_P((char*)menu_strings[MENU_TEXT_Powersavebattery], PSTR("<%u%%"), g_settings.powersaveBatteryBelow);
 	if (g_settings.clockShowSeconds) {
 		sprintf_P((char*)menu_strings[MENU_TEXT_ShowSecs], PSTR("Sec On"));
 	} else {
@@ -724,7 +724,7 @@ static uint8_t rs232Inc(void) {
 }
 
 static uint8_t batCapDec(void) {
-	if (g_settings.batteryCapacity > 650) {
+	if (g_settings.batteryCapacity > BATTERYCAPACITY_MIN) {
 		g_settings.batteryCapacity -= 50;
 	}
 	updateText();
@@ -732,7 +732,7 @@ static uint8_t batCapDec(void) {
 }
 
 static uint8_t batCapInc(void) {
-	if (g_settings.batteryCapacity < 1200) {
+	if (g_settings.batteryCapacity < BATTERYCAPACITY_MAX) {
 		g_settings.batteryCapacity += 50;
 	}
 	updateText();
@@ -889,6 +889,23 @@ static uint8_t powersaveOn(void) {
 	g_dispUpdate = &updateClockText;
 	return 1;
 }
+
+static uint8_t powersavebatInc(void) {
+	if (g_settings.powersaveBatteryBelow < 100) {
+		g_settings.powersaveBatteryBelow += 5;
+	}
+	updateText();
+	return 1;
+}
+
+static uint8_t powersavebatDec(void) {
+	if (g_settings.powersaveBatteryBelow >= 5) {
+		g_settings.powersaveBatteryBelow -= 5;
+	}
+	updateText();
+	return 1;
+}
+
 
 static uint8_t keylockLeave(void) {
 	g_state.powersaveEnabled &= ~2; //clear manual mode bit
@@ -1177,7 +1194,6 @@ static uint8_t clockCalibAuto(void) {
 	return 1;
 }
 
-
 unsigned char menu_action(unsigned short action) {
 	unsigned char redraw = 0;
 	switch(action) {
@@ -1252,6 +1268,8 @@ unsigned char menu_action(unsigned short action) {
 		case MENU_ACTION_PowersaveweekDec:   redraw = powersaveweekDec(); break;
 		case MENU_ACTION_PowersaveweekInc:   redraw = powersaveweekInc(); break;
 		case MENU_ACTION_PowersaveweekNext:  redraw = powersaveweekNext(); break;
+		case MENU_ACTION_PowersavebatInc:    redraw = powersavebatInc(); break;
+		case MENU_ACTION_PowersavebatDec:    redraw = powersavebatDec(); break;
 		case MENU_ACTION_Rfm12Dec:           redraw = rfm12Dec(); break;
 		case MENU_ACTION_Rfm12Inc:           redraw = rfm12Inc(); break;
 		case MENU_ACTION_Rc5Dec:             redraw = rc5Dec(); break;

@@ -305,7 +305,7 @@ static void logger_print_entry(uint16_t entryidx) {
 			uint32_t consumed = entry.data.lbattery.consumed;
 			uint16_t templ = temperature10th / 10;
 			uint16_t tempr = temperature10th % 10;
-			DbgPrintf_P(PSTR("BATT, %umV, bat: %umAh, %imA %u.%u°C, consumed: %lumAh"),
+			DbgPrintf_P(PSTR("BATT, %umV, bat: %umAh, %imA, %u.%u°C, consumed: %lumAh"),
 			           voltage, batCharged, current, templ, tempr, (unsigned long)consumed);
 		}
 	}

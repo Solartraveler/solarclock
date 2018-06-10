@@ -28,7 +28,9 @@ FILENAME=temperatures
 
 #rev, reverts string, remove first five (utf8 handled as ascii) characters (C°,), revert again
 
-cat "$@" | grep BATT | sort -k 2 -n | uniq | grep -E '20([1-4])([0-9])-' | egrep '^.{1,145}$' | tr -s ' ' | cut -d " " -f 3,4,10 | rev | cut -c 5- | rev > "$FILENAME.txt"
+
+cat "$@" | grep BATT | sort -k 2 -n | uniq | grep -E '20([1-4])([0-9])-' | egrep '^.{1,145}$' | tr -s ' ' | cut -d " " -f 3,4,10 | sed 's/°C,//g' > "$FILENAME.txt"
+
 
 STARTDATE=`cat "$FILENAME.txt" | head -n 1 | cut -d " " -f 1`
 ENDDATE=`cat "$FILENAME.txt" | tail -n 1 | cut -d " " -f 1`
@@ -36,6 +38,28 @@ ENDDATE=`cat "$FILENAME.txt" | tail -n 1 | cut -d " " -f 1`
 #Convert from 2017-12-31 to 31.12.2017
 STARTDATE2=`date -d"$STARTDATE" +%d.%m.%Y`
 ENDDATE2=`date -d"$ENDDATE" +%d.%m.%Y`
+
+#insert empty lines to have interupted lines with dates without data
+rm -f "$FILENAME-temp.txt"
+
+#it can be 25hours if summmer -> winter time switch occurrs
+oneday=$(expr 25 \* 60 \* 60)
+timestamplast=`date -d "$STARTDATE" +%s`
+
+
+while read datec timec temperature
+do
+	timestamp=`date -d $datec +%s`
+	timestamplastoneday=$(expr "$timestamplast" + "$oneday")
+	if [ "$timestamp" -gt "$timestamplastoneday" ];
+	then
+		echo "" >> "$FILENAME-temp.txt"
+	fi
+	echo "$datec $timec $temperature" >> "$FILENAME-temp.txt"
+	timestamplast=$timestamp
+done < "$FILENAME.txt"
+
+mv "$FILENAME-temp.txt" "$FILENAME.txt"
 
 echo '\
 set encoding utf8;\

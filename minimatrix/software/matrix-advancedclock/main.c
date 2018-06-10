@@ -1,5 +1,5 @@
 /* Matrix-Advancedclock
-  (c) 2014-2017 by Malte Marwedel
+  (c) 2014-2018 by Malte Marwedel
   www.marwedels.de/malte
 
   This program is free software; you can redistribute it and/or modify
@@ -142,6 +142,10 @@ static void update_consumption(void) {
 	uint64_t consumptionOld = g_state.consumption;
 	/*Consumption by the LEDs depending on the brightness and number of LEDs
 		first multiplication fits in 16 bits: 140 max dots * 255 max brightness
+		Note: the consumption is underestimated if RFM12 is active. Reason:
+		Brighness is boosted to avoid delays in interrupts - see displayRtc.c.
+		The value is however small compared to the other usage of the RFM12 and
+		therefore ignored here.
 	*/
 	uint32_t uas = (uint16_t)g_state.dotsOn * (uint16_t)g_state.brightness;
 	uas *= (uint32_t)g_settings.consumptionLedOneMax;
@@ -191,7 +195,7 @@ static void update_consumption(void) {
 		//after an extended period
 		uint32_t delta = g_state.consumption - consumptionOld;
 		uint32_t cons = g_state.consumption;
-		DbgPrintf_P(PSTR("Consume: %luuAs (+%luuA)\r\n"), cons, delta);
+		DbgPrintf_P(PSTR("Consume: %luµAs (+%luµA)\r\n"), cons, delta);
 	}
 }
 
@@ -415,12 +419,10 @@ static void watchdog_enable(void) {
 }
 
 #define IRKEYS 4
-#define VERIFYCHECKS 4
+#define VERIFYCHECKS 20
 
-//filters high noise, like flickering LED lighning
+//filters high noise, like flickering LED lightning
 #define IRMAX 2800
-
-#define SLOW_RISING
 
 /*Note: Energy could be conserved by not fully rise the voltage
   when using SLOW_RISING. However then it must be taken care of the fact that
@@ -438,7 +440,7 @@ static void irKeyPowerup(void) {
 	PORTA.PIN2CTRL = PORT_OPC_TOTEM_gc;
 	PORTA.DIRSET = 0x04;
 	PORTA.OUTCLR = 0x04; //the output is low active, enable IR LEDs
-	_delay_us(30.0);
+	_delay_us(80.0);
 #endif
 }
 
@@ -451,6 +453,7 @@ static void irKeyPowerdown(void) {
 }
 
 static uint8_t irKeysRead(void) {
+#if 0
 	uint16_t val[IRKEYS];
 	uint16_t valVerify[VERIFYCHECKS];
 	uint8_t key = 0;
@@ -484,12 +487,54 @@ static uint8_t irKeysRead(void) {
 		}
 	}
 	adca_stop();
+#else
+	/*The signal of the pressed key must be present in every measurement
+		until all values have stabilized
+	*/
+	uint16_t val[IRKEYS];
+	uint8_t key;
+	uint8_t keyLast = 0;
+	uint16_t avgLast = 0x0;
+	uint8_t numkeys = 0;
+	uint8_t j;
+	irKeyPowerup();
+	adca_startup();
+	for (j = 0; j < VERIFYCHECKS; j++) {
+		adca_getQuad(3, 4, 5, 6, ADC_REFSEL_VCC_gc, val);
+		uint16_t avg = 0;
+		for (uint8_t i = 0; i < IRKEYS; i++) {
+			avg += val[i];
+		}
+		avg = (avg >> 2) * 8/10; //80% limit of average value (>>2 represents IRKEYS)
+		key = 0;
+		for (uint8_t i = 0; i < IRKEYS; i++) {
+			if ((val[i] < avg) && (val[i] < (IRMAX))) {
+				key = i + 1;
+				numkeys = 1;
+			}
+		}
+		if (key == 0) {
+			break; //early out because no key signal on first try
+		}
+		if ((keyLast) && (keyLast != key)) { //not the same key as previous round
+			numkeys = 2;
+			break;
+		}
+		if (avg <= avgLast) {
+			break; //no decrease in power anylonger
+		}
+		avgLast = avg;
+		keyLast = key;
+	}
+	irKeyPowerdown();
+	adca_stop();
+#endif
 	g_state.keyDebugAd = val[1];
 	if (g_settings.debugRs232 == 4) {
-		DbgPrintf_P(PSTR("IR %u %u %u %u\r\n"), val[0], val[1], val[2], val[3]);
+		DbgPrintf_P(PSTR("IR (%u) %u %u %u %u\r\n"), j, val[0], val[1], val[2], val[3]);
 	}
 	if (numkeys == 1) {
-		if (g_settings.debugRs232) {
+		if ((g_settings.debugRs232) && (key)) {
 			DbgPrintf_P(PSTR("Pressed %c\r\n"), 'A'+key-1);
 		}
 		return key;
@@ -653,12 +698,16 @@ static void updateDebugInput(void) {
 		if (c == 'P') {
 			g_state.printPing = 1;
 		}
+		if (c == 'e') {
+			config_print();
+		}
 		if (c == 'h') {
 			rs232_sendstring_P(PSTR("w a s d: Key input\n\r"));
 			rs232_sendstring_P(PSTR("L l:     Output log\n\r"));
 			rs232_sendstring_P(PSTR("m:       RFM12 stats\n\r"));
 			rs232_sendstring_P(PSTR("C c:     modify battery state\n\r"));
 			rs232_sendstring_P(PSTR("P p:     Ping on/off\n\r"));
+			rs232_sendstring_P(PSTR("e:       Output permantent settings\n\r"));
 		}
 #if 0
 		if (c == 'R') {
@@ -843,8 +892,12 @@ static void updatePowerSaving(void) {
 		if ((m == g_settings.powersaveMinuteStart) && (h == g_settings.powersaveHourStart)) {
 			uint8_t weekday = calcweekdayfromtimestamp(g_state.time);
 			if (g_settings.powersaveWeekdays & (1<<(weekday))) {
-				g_state.powersaveEnabled |= 0x1; //dont overwrite manual mode bit
-				rs232_sendstring_P(PSTR("Powersave enabled\r\n"));
+				uint32_t maslimit = (uint32_t)g_settings.batteryCapacity*60ULL*60ULL; //from mAh to mAs
+				maslimit = maslimit * g_settings.powersaveBatteryBelow / 100; //overflows at ~10Ah
+				if (g_state.batteryCharged < maslimit) {
+					g_state.powersaveEnabled |= 0x1; //dont overwrite manual mode bit
+					rs232_sendstring_P(PSTR("Powersave enabled\r\n"));
+				}
 			}
 		}
 		if ((m == g_settings.powersaveMinuteStop) && (h == g_settings.powersaveHourStop)) {
@@ -1009,7 +1062,7 @@ int main(void) {
 	stackCheckInit(); //must be called before enabling ints
 	disp_rtc_setup();
 	g_settings.debugRs232 = 1; //gets overwritten by config_load() anyway
-	rs232_sendstring_P(PSTR("Advanced-Clock V0.8\r\n"));
+	rs232_sendstring_P(PSTR("Advanced-Clock V0.9.1\r\n"));
 	g_state.printPing = 1;
 	config_load();
 	g_state.batteryCharged = g_settings.batteryCapacity;
