@@ -106,6 +106,10 @@ typedef struct {
 	uint16_t reportingindex; //we cant report everything in one cycle
 } loggerstate_t;
 
+/*
+All variables ending with Cd are count downs who are periodically
+decremented until they are reaching zero
+*/
 typedef struct {
 	uint8_t alarmEnterState; //config screen: 0: set hour, 1: set minutes, 2: enable/disable, 3...9: weekday
 	uint16_t timerCountdownSecs; //[seconds]
@@ -173,6 +177,8 @@ typedef struct {
 	void * memMinStack; //[address] minimum address of the stack not written
 	void * memMaxHeap; //[address maximum address used for the heap (likely a constant as this project does not use malloc/free)
 	loggerstate_t logger;
+	uint8_t printConfigPart; //if not 0, parts of the config should be printed
+	uint8_t keylockTimeoutCd; //[seconds] If the keylock waits for a new input, it jumps back to the clock if the countdown reaches zero
 } sysstate_t;
 
 extern settings_t g_settings; //permanent settings
@@ -182,7 +188,7 @@ extern sysstate_t g_state; //floating state of main program
 void config_load(void);
 void config_save(void);
 
-void config_print(void);
+uint8_t config_print(uint8_t part);
 
 #endif
 

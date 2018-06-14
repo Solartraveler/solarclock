@@ -1,5 +1,5 @@
 /* Matrix-Advancedclock
-  (c) 2014-2017 by Malte Marwedel
+  (c) 2014-2018 by Malte Marwedel
   www.marwedels.de/malte
 
   This program is free software; you can redistribute it and/or modify
@@ -909,6 +909,7 @@ static uint8_t powersavebatDec(void) {
 
 static uint8_t keylockLeave(void) {
 	g_state.powersaveEnabled &= ~2; //clear manual mode bit
+	g_state.keylockTimeoutCd = 0; //stop some timeout
 	g_dispUpdate = &updateClockText;
 	return 1;
 }
@@ -1194,6 +1195,11 @@ static uint8_t clockCalibAuto(void) {
 	return 1;
 }
 
+static uint8_t KeylockCountdownRestart(void) {
+	g_state.keylockTimeoutCd = 60;
+	return 0;
+}
+
 unsigned char menu_action(unsigned short action) {
 	unsigned char redraw = 0;
 	switch(action) {
@@ -1304,6 +1310,7 @@ unsigned char menu_action(unsigned short action) {
 		case MENU_ACTION_ClockCalibDec:      redraw = clockCalibDec(); break;
 		case MENU_ACTION_ClockCalibInc:      redraw = clockCalibInc(); break;
 		case MENU_ACTION_ClockCalibAuto:     redraw = clockCalibAuto(); break;
+		case MENU_ACTION_KeylockCountdownRestart: g_dispUpdate = NULL; redraw = KeylockCountdownRestart(); break;
 	}
 	if (g_dispUpdate) {
 		g_dispUpdate();

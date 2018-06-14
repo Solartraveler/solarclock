@@ -182,42 +182,57 @@ void config_save(void) {
 	eeprom_update_word(EEPROM_CRC_BACKUP_POS, crc);
 }
 
-void config_print(void) {
-	DbgPrintf_P(PSTR("DebugRs232: %u\r\n"), g_settings.debugRs232);
-	for (uint8_t i = 0; i < ALARMS; i++) {
-		DbgPrintf_P(PSTR("Alarm[%u]: %u:%u Days:0x%X Enabled:%u\r\n"), i, g_settings.alarmHour[i], g_settings.alarmMinute[i], g_settings.alarmWeekdays[i], g_settings.alarmEnabled[i]);
+/*
+The part allows sending in multiple blocks with delays between and prevents
+throwing away messages because the RFM12 FIFO is full.
+Set to 1 to start the process.
+The return value gives the next number to use. If 0 is returned, the process is
+done.
+*/
+uint8_t config_print(uint8_t part) {
+	if (part == 1) {
+		DbgPrintf_P(PSTR("DebugRs232: %u\r\n"), g_settings.debugRs232);
+		for (uint8_t i = 0; i < ALARMS; i++) {
+			DbgPrintf_P(PSTR("Alarm[%u]: %u:%u Days:0x%X Enabled:%u\r\n"), i, g_settings.alarmHour[i], g_settings.alarmMinute[i], g_settings.alarmWeekdays[i], g_settings.alarmEnabled[i]);
+		}
+		DbgPrintf_P(PSTR("Timer[minutes]: %u\r\n"), g_settings.timerMinutes);
+		DbgPrintf_P(PSTR("BrightnessAuto: %u\r\n"), g_settings.brightnessAuto);
+		DbgPrintf_P(PSTR("Brightness: %u\r\n"), g_settings.brightness);
+		DbgPrintf_P(PSTR("BrightnessNoOff: %u\r\n"), g_settings.brightnessNoOff);
+		DbgPrintf_P(PSTR("ClockShowSeconds: %u\r\n"), g_settings.clockShowSeconds);
+		DbgPrintf_P(PSTR("SoundAutoOff[minutes]: %u\r\n"), g_settings.soundAutoOffMinutes);
+	} else if (part == 2) {
+		DbgPrintf_P(PSTR("SoundVolume: %u\r\n"), g_settings.soundVolume);
+		DbgPrintf_P(PSTR("SoundFrequency[Hz]: %u\r\n"), g_settings.soundFrequency);
+		DbgPrintf_P(PSTR("DisplayRefresh[Hz]: %u\r\n"), g_settings.displayRefresh);
+		DbgPrintf_P(PSTR("ChargerMode: %u\r\n"), g_settings.chargerMode);
+		DbgPrintf_P(PSTR("ConsumtionLedOneMax[µA]: %u\r\n"), g_settings.consumptionLedOneMax);
+		DbgPrintf_P(PSTR("BatteryCapacity[mAh]: %u\r\n"), g_settings.batteryCapacity);
+		DbgPrintf_P(PSTR("CurrentResCal[10mΩ]: %u\r\n"), g_settings.currentResCal);
+		DbgPrintf_P(PSTR("Dcf77Level: %u\r\n"), g_settings.dcf77Level);
+		DbgPrintf_P(PSTR("Dcf77Period[hours]: %u\r\n"), g_settings.dcf77Period);
+	} else if (part == 3) {
+		DbgPrintf_P(PSTR("Rc5Mode: %u\r\n"), g_settings.rc5mode);
+		for (uint8_t i = 0; i < RC5KEYS; i++) {
+			DbgPrintf_P(PSTR("Rc5Codes[%u]: %u\r\n"), i, g_settings.rc5codes[i]);
+		}
+		DbgPrintf_P(PSTR("Rfm12Mode: %u\r\n"), g_settings.rfm12mode);
+		DbgPrintf_P(PSTR("Rfm12Passcode: %u\r\n"), g_settings.rfm12passcode);
+		DbgPrintf_P(PSTR("Reboots: %lu\r\n"), (unsigned long)g_settings.reboots);
+		DbgPrintf_P(PSTR("Usage[seconds]: %lu\r\n"), (unsigned long)g_settings.usageseconds);
+	}  else if (part == 4) {
+		DbgPrintf_P(PSTR("PowersaveStart: %u:%u\r\n"), g_settings.powersaveHourStart, g_settings.powersaveMinuteStart);
+		DbgPrintf_P(PSTR("PowersaveStop: %u:%u\r\n"), g_settings.powersaveHourStop, g_settings.powersaveMinuteStop);
+		DbgPrintf_P(PSTR("PowersaveWeekdays: 0x%X\r\n"), g_settings.powersaveWeekdays);
+		DbgPrintf_P(PSTR("PowersaveBatteryBelow[%%]: %u\r\n"), g_settings.powersaveBatteryBelow);
+		DbgPrintf_P(PSTR("Summertimeadjust: %u\r\n"), g_settings.summertimeadjust);
+		DbgPrintf_P(PSTR("LoggerPeriod[hours]: %u\r\n"), g_settings.loggerPeriod);
+		DbgPrintf_P(PSTR("FlickerWorkaround: %u\r\n"), g_settings.flickerWorkaround);
+		DbgPrintf_P(PSTR("TimeCalib[ms]: %i\r\n"), g_settings.timeCalib);
+	} else {
+		return 0;
 	}
-	DbgPrintf_P(PSTR("Timer[minutes]: %u\r\n"), g_settings.timerMinutes);
-	DbgPrintf_P(PSTR("BrightnessAuto: %u\r\n"), g_settings.brightnessAuto);
-	DbgPrintf_P(PSTR("Brightness: %u\r\n"), g_settings.brightness);
-	DbgPrintf_P(PSTR("BrightnessNoOff: %u\r\n"), g_settings.brightnessNoOff);
-	DbgPrintf_P(PSTR("ClockShowSeconds: %u\r\n"), g_settings.clockShowSeconds);
-	DbgPrintf_P(PSTR("SoundAutoOff[minutes]: %u\r\n"), g_settings.soundAutoOffMinutes);
-	DbgPrintf_P(PSTR("SoundVolume: %u\r\n"), g_settings.soundVolume);
-	DbgPrintf_P(PSTR("SoundFrequency[Hz]: %u\r\n"), g_settings.soundFrequency);
-	DbgPrintf_P(PSTR("DisplayRefresh[Hz]: %u\r\n"), g_settings.displayRefresh);
-	DbgPrintf_P(PSTR("ChargerMode: %u\r\n"), g_settings.chargerMode);
-	DbgPrintf_P(PSTR("ConsumtionLedOneMax[µA]: %u\r\n"), g_settings.consumptionLedOneMax);
-	DbgPrintf_P(PSTR("BatteryCapacity[mAh]: %u\r\n"), g_settings.batteryCapacity);
-	DbgPrintf_P(PSTR("CurrentResCal[10mΩ]: %u\r\n"), g_settings.currentResCal);
-	DbgPrintf_P(PSTR("Dcf77Level: %u\r\n"), g_settings.dcf77Level);
-	DbgPrintf_P(PSTR("Dcf77Period[hours]: %u\r\n"), g_settings.dcf77Period);
-	DbgPrintf_P(PSTR("Rc5Mode: %u\r\n"), g_settings.rc5mode);
-	for (uint8_t i = 0; i < RC5KEYS; i++) {
-		DbgPrintf_P(PSTR("Rc5Codes[%u]: %u\r\n"), i, g_settings.rc5codes[i]);
-	}
-	DbgPrintf_P(PSTR("Rfm12Mode: %u\r\n"), g_settings.rfm12mode);
-	DbgPrintf_P(PSTR("Rfm12Passcode: %u\r\n"), g_settings.rfm12passcode);
-	DbgPrintf_P(PSTR("Reboots: %lu\r\n"), (unsigned long)g_settings.reboots);
-	DbgPrintf_P(PSTR("Usage[seconds]: %lu\r\n"), (unsigned long)g_settings.usageseconds);
-	DbgPrintf_P(PSTR("PowersaveStart: %u:%u\r\n"), g_settings.powersaveHourStart, g_settings.powersaveMinuteStart);
-	DbgPrintf_P(PSTR("PowersaveStop: %u:%u\r\n"), g_settings.powersaveHourStop, g_settings.powersaveMinuteStop);
-	DbgPrintf_P(PSTR("PowersaveWeekdays: 0x%X\r\n"), g_settings.powersaveWeekdays);
-	DbgPrintf_P(PSTR("PowersaveBatteryBelow[%%]: %u\r\n"), g_settings.powersaveBatteryBelow);
-	DbgPrintf_P(PSTR("Summertimeadjust: %u\r\n"), g_settings.summertimeadjust);
-	DbgPrintf_P(PSTR("LoggerPeriod[hours]: %u\r\n"), g_settings.loggerPeriod);
-	DbgPrintf_P(PSTR("FlickerWorkaround: %u\r\n"), g_settings.flickerWorkaround);
-	DbgPrintf_P(PSTR("TimeCalib[ms]: %i\r\n"), g_settings.timeCalib);
+	return (part + 1);
 }
 
 

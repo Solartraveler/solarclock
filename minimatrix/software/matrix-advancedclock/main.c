@@ -699,7 +699,7 @@ static void updateDebugInput(void) {
 			g_state.printPing = 1;
 		}
 		if (c == 'e') {
-			config_print();
+			g_state.printConfigPart = 1;
 		}
 		if (c == 'h') {
 			rs232_sendstring_P(PSTR("w a s d: Key input\n\r"));
@@ -818,6 +818,9 @@ static void run2xS(void) {
 	DEBUG_FUNC_ENTER(run2xS);
 	//update display brightness
 	update_display_brightnessMeasure();
+	if (g_state.printConfigPart) {
+		g_state.printConfigPart = config_print(g_state.printConfigPart);
+	}
 	DEBUG_FUNC_LEAVE(run2xS);
 }
 
@@ -957,7 +960,13 @@ static void run1xS(void) {
 	if (g_state.displayNoOffCd) {
 		g_state.displayNoOffCd--;
 	}
-
+	//count down for keylock timeout
+	if (g_state.keylockTimeoutCd) {
+		g_state.keylockTimeoutCd--;
+		if (g_state.keylockTimeoutCd == 0) {
+			menu_keypress(110); //jumps back to clock from "Press X" screens. See xml file.
+		}
+	}
 	//DbgPrintf_P(PSTR(" Resync in: %lu\r\n"), (unsigned long)g_state.dcf77ResyncCd);
 
 	//calc time to dcf77 resync
@@ -1062,7 +1071,7 @@ int main(void) {
 	stackCheckInit(); //must be called before enabling ints
 	disp_rtc_setup();
 	g_settings.debugRs232 = 1; //gets overwritten by config_load() anyway
-	rs232_sendstring_P(PSTR("Advanced-Clock V0.9.1\r\n"));
+	rs232_sendstring_P(PSTR("Advanced-Clock V0.9.2\r\n"));
 	g_state.printPing = 1;
 	config_load();
 	g_state.batteryCharged = g_settings.batteryCapacity;
