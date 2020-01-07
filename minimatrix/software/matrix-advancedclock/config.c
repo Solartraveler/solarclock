@@ -25,6 +25,7 @@
 #include "config.h"
 #include "rs232.h"
 #include "debug.h"
+#include "rfm12.h"
 
 #define EEPROM_CONFIG_POS (void*)0
 #define EEPROM_CRC_POS ((uint16_t*)(EEPROM_CONFIG_POS + sizeof(settings_t)))
@@ -190,43 +191,64 @@ The return value gives the next number to use. If 0 is returned, the process is
 done.
 */
 uint8_t config_print(uint8_t part) {
+	//wait for RFM12 to have a free buffer
+	if (rfm12_replicateready()) {
+		uint16_t freerfm = rfm12_txbufferfree();
+		if (freerfm < RFM12_DATABUFFERSIZE) //might not work in the case of long loops to print at once, but reliable enough
+		{
+			return part;
+		}
+	}
+	//print part
 	if (part == 1) {
 		DbgPrintf_P(PSTR("DebugRs232: %u\r\n"), g_settings.debugRs232);
 		for (uint8_t i = 0; i < ALARMS; i++) {
 			DbgPrintf_P(PSTR("Alarm[%u]: %u:%u Days:0x%X Enabled:%u\r\n"), i, g_settings.alarmHour[i], g_settings.alarmMinute[i], g_settings.alarmWeekdays[i], g_settings.alarmEnabled[i]);
 		}
+	} else if (part == 2) {
 		DbgPrintf_P(PSTR("Timer[minutes]: %u\r\n"), g_settings.timerMinutes);
 		DbgPrintf_P(PSTR("BrightnessAuto: %u\r\n"), g_settings.brightnessAuto);
+	} else if (part == 3) {
 		DbgPrintf_P(PSTR("Brightness: %u\r\n"), g_settings.brightness);
 		DbgPrintf_P(PSTR("BrightnessNoOff: %u\r\n"), g_settings.brightnessNoOff);
+	} else if (part == 4) {
 		DbgPrintf_P(PSTR("ClockShowSeconds: %u\r\n"), g_settings.clockShowSeconds);
 		DbgPrintf_P(PSTR("SoundAutoOff[minutes]: %u\r\n"), g_settings.soundAutoOffMinutes);
-	} else if (part == 2) {
+	} else if (part == 5) {
 		DbgPrintf_P(PSTR("SoundVolume: %u\r\n"), g_settings.soundVolume);
 		DbgPrintf_P(PSTR("SoundFrequency[Hz]: %u\r\n"), g_settings.soundFrequency);
+	} else if (part == 6) {
 		DbgPrintf_P(PSTR("DisplayRefresh[Hz]: %u\r\n"), g_settings.displayRefresh);
 		DbgPrintf_P(PSTR("ChargerMode: %u\r\n"), g_settings.chargerMode);
+	} else if (part == 7) {
 		DbgPrintf_P(PSTR("ConsumtionLedOneMax[µA]: %u\r\n"), g_settings.consumptionLedOneMax);
 		DbgPrintf_P(PSTR("BatteryCapacity[mAh]: %u\r\n"), g_settings.batteryCapacity);
+	} else if (part == 8) {
 		DbgPrintf_P(PSTR("CurrentResCal[10mΩ]: %u\r\n"), g_settings.currentResCal);
 		DbgPrintf_P(PSTR("Dcf77Level: %u\r\n"), g_settings.dcf77Level);
+	} else if (part == 9) {
 		DbgPrintf_P(PSTR("Dcf77Period[hours]: %u\r\n"), g_settings.dcf77Period);
-	} else if (part == 3) {
 		DbgPrintf_P(PSTR("Rc5Mode: %u\r\n"), g_settings.rc5mode);
+	} else if (part == 10) {
 		for (uint8_t i = 0; i < RC5KEYS; i++) {
 			DbgPrintf_P(PSTR("Rc5Codes[%u]: %u\r\n"), i, g_settings.rc5codes[i]);
 		}
+	} else if (part == 11) {
 		DbgPrintf_P(PSTR("Rfm12Mode: %u\r\n"), g_settings.rfm12mode);
 		DbgPrintf_P(PSTR("Rfm12Passcode: %u\r\n"), g_settings.rfm12passcode);
+	} else if (part == 12) {
 		DbgPrintf_P(PSTR("Reboots: %lu\r\n"), (unsigned long)g_settings.reboots);
 		DbgPrintf_P(PSTR("Usage[seconds]: %lu\r\n"), (unsigned long)g_settings.usageseconds);
-	}  else if (part == 4) {
+	}  else if (part == 13) {
 		DbgPrintf_P(PSTR("PowersaveStart: %u:%u\r\n"), g_settings.powersaveHourStart, g_settings.powersaveMinuteStart);
 		DbgPrintf_P(PSTR("PowersaveStop: %u:%u\r\n"), g_settings.powersaveHourStop, g_settings.powersaveMinuteStop);
+	} else if (part == 14) {
 		DbgPrintf_P(PSTR("PowersaveWeekdays: 0x%X\r\n"), g_settings.powersaveWeekdays);
 		DbgPrintf_P(PSTR("PowersaveBatteryBelow[%%]: %u\r\n"), g_settings.powersaveBatteryBelow);
+	}  else if (part == 15) {
 		DbgPrintf_P(PSTR("Summertimeadjust: %u\r\n"), g_settings.summertimeadjust);
 		DbgPrintf_P(PSTR("LoggerPeriod[hours]: %u\r\n"), g_settings.loggerPeriod);
+	} else if (part == 16) {
 		DbgPrintf_P(PSTR("FlickerWorkaround: %u\r\n"), g_settings.flickerWorkaround);
 		DbgPrintf_P(PSTR("TimeCalib[ms]: %i\r\n"), g_settings.timeCalib);
 	} else {

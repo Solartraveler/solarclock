@@ -74,7 +74,7 @@ typedef struct {
 	uint8_t irKeyCd; //count down in [1/8s]
 	uint8_t irKeyLast; //0: None, 1..4: The keys A...D
 	uint8_t displayNoOffCd; //do not switch display off if not zero [seconds]
-	uint8_t soundEnabledCd; //count down [seconds] until sound goes off automatically
+	uint16_t soundEnabledCd; //count down [seconds] until sound goes off automatically
 	uint16_t batVoltage; //[mV] of the battery
 	uint8_t batLowWarningCd; //count down [seconds] while no battery low warning is displayed
 	int32_t chargerResistoroffset; //error correction factor to the base 4096 (best would be 4096). ADC0*Offset/4096 = ADC7 if no current is charged

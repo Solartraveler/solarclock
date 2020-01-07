@@ -3,6 +3,9 @@
 
 #include "config.h"
 
+
+#define RFM12_DATABUFFERSIZE 64
+
 //21552baud is too fast when other interrupts come between
 //use 10776baud:
 #define RFM12_BAUDRATE 10000

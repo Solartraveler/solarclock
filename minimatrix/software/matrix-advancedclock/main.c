@@ -547,10 +547,14 @@ static void update_alarmAndSound(void) {
 		g_state.timerCountdownSecs--;
 		if (!g_state.timerCountdownSecs) {
 			g_state.soundEnabledCd = g_settings.soundAutoOffMinutes*60;
+			g_state.soundDisableState = 3;
 		}
 	}
 	if (g_state.soundEnabledCd) {
 		g_state.soundEnabledCd--;
+		if (!(g_state.soundEnabledCd)) {
+			g_state.soundDisableState = 0;
+		}
 		//half second beep, half second off, etc
 		sound_beep(g_settings.soundVolume, g_settings.soundFrequency, 500);
 	}
@@ -746,6 +750,7 @@ static void run8xS(uint8_t delayed) {
 	}
 	//read in IR key sensors
 	uint8_t irKey = 0;
+	uint8_t keyInputUpdated = 0;
 	if (g_state.irKeyUse) {
 		if (dcf77_is_idle()) { //reduce noise (do not measure infrared key while bit comes in)
 			/*if we never synced, and tried for more than 10minutes and if no key
@@ -758,36 +763,48 @@ static void run8xS(uint8_t delayed) {
 			    (g_state.time < (10*60)) ||
 			    (dcf77_is_enabled() == 0) || (g_state.soundEnabledCd)) {
 				irKey = irKeysRead();
+				keyInputUpdated = 1;
 			}
 		}
 	} else {
 		irKey = touchKeysRead();
+		keyInputUpdated = 1;
 	}
 	//read in RC-5 key
 	uint8_t rc5key = rc5keyget();
 	if (rc5key) {
 		irKey = rc5key; //overwrites ir key behaviour
+		keyInputUpdated = 1;
 	}
-	if (irKey) {
-		rc5keypress();
-		rfm12keypress();
-		g_state.displayNoOffCd = 60; //60s countdown
-		if (irKey != g_state.irKeyLast) {
-			if (g_state.soundEnabledCd) {
-				g_state.soundEnabledCd = 0; //disable beep
-			} else {
-				menu_keypress(irKey);
+	if (keyInputUpdated) {
+		if (irKey) {
+			rc5keypress();
+			rfm12keypress();
+			g_state.displayNoOffCd = 60; //60s countdown
+			if (g_state.soundDisableState != 1) { //wait for key release of sound disable until accept new input
+				if (irKey != g_state.irKeyLast) {
+					if (g_state.soundDisableState == 2) {
+						g_state.soundEnabledCd = 0; //disable beep
+						g_state.soundDisableState = 1;
+					} else {
+						menu_keypress(irKey);
+					}
+					g_state.irKeyCd = 6;
+				} else {
+					if (g_state.irKeyCd == 0) {
+						//continuous keypress for repeated menu press of same key
+						menu_keypress(irKey);
+						g_state.irKeyCd = 4;
+					}
+				}
 			}
-			g_state.irKeyCd = 6;
-		} else {
-			if (g_state.irKeyCd == 0) {
-				//continuous keypress for repeated menu press of same key
-				menu_keypress(irKey);
-				g_state.irKeyCd = 4;
-			}
+		} else if (g_state.soundDisableState == 3) { //requires at least one key release
+			g_state.soundDisableState = 2;
+		} else if (g_state.soundDisableState == 1) { //requires key release after a press
+			g_state.soundDisableState = 0;
 		}
+		g_state.irKeyLast = irKey;
 	}
-	g_state.irKeyLast = irKey;
 	if (g_state.irKeyCd) {
 		g_state.irKeyCd--;
 	}
@@ -881,6 +898,7 @@ static void updateAlarm(void) {
 				uint8_t weekdaymask = 1<<(weekday);
 				if (weekdaymask & g_settings.alarmWeekdays[i]) {
 					g_state.soundEnabledCd = g_settings.soundAutoOffMinutes*60;
+					g_state.soundDisableState = 3;
 				}
 			}
 		}
@@ -1071,7 +1089,7 @@ int main(void) {
 	stackCheckInit(); //must be called before enabling ints
 	disp_rtc_setup();
 	g_settings.debugRs232 = 1; //gets overwritten by config_load() anyway
-	rs232_sendstring_P(PSTR("Advanced-Clock V0.9.2\r\n"));
+	rs232_sendstring_P(PSTR("Advanced-Clock V0.9.3\r\n"));
 	g_state.printPing = 1;
 	config_load();
 	g_state.batteryCharged = g_settings.batteryCapacity;

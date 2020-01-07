@@ -158,8 +158,6 @@ RFM12 (not RFM12B) would need pullups on FSK DATA nFFS (not used here)
 #define RFM12_TIMER_POWER PR_PRPE
 #define RFM12_TIMER_POWER_BIT PR_TC1_bm
 
-#define RFM12_DATABUFFERSIZE 64
-
 
 #define RFM12_MAXBADCONNECT 20
 

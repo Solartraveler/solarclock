@@ -13,7 +13,8 @@
 
 //mAh the user can set as maximum
 #define BATTERYCAPACITY_MAX 3000
-#define BATTERYCAPACITY_MIN 600
+//an old 760mAh battery might just have 200mAh left after some years
+#define BATTERYCAPACITY_MIN 150
 
 #define DCF77LEVEL_NORMAL 60
 #define DCF77LEVEL_MAX 150
@@ -140,7 +141,8 @@ typedef struct {
 	uint8_t irKeyCd; //count down in [1/8s]
 	uint8_t irKeyLast; //0: None, 1..4: The keys A...D
 	uint8_t displayNoOffCd; //do not switch display off if not zero [seconds] Set to 60s on keypress
-	uint8_t soundEnabledCd; //count down [seconds] until sound goes off automatically
+	uint16_t soundEnabledCd; //count down [seconds] until sound goes off automatically
+	uint8_t soundDisableState; //3: wait for no key. 2: wait for key to disable sound, 1: wait for no key, 0: done
 	uint16_t batVoltage; //[mV] of the battery
 	uint8_t batLowWarningCd; //count down [seconds] while no battery low warning is displayed
 	int32_t chargerResistoroffset; //error correction factor to the base 4096 (best would be 4096). ADC0*Offset/4096 = ADC7 if no current is charged
